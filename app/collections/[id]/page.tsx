@@ -7,13 +7,9 @@ import { COLLECTIONS } from '@/lib/collection-utils';
 export default function CollectionDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }> | { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const resolvedParams =
-    typeof (params as any)?.then === 'function'
-      ? use(params as Promise<{ id: string }>)
-      : (params as { id: string });
-  const collectionId = resolvedParams?.id;
+  const { id: collectionId } = use(params);
 
   const [collection, setCollection] = useState<any>(null);
   const [loading, setLoading] = useState(true);

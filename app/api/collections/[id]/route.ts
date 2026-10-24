@@ -6,10 +6,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } | Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const resolvedParams = await Promise.resolve(params);
-  const collectionId = resolvedParams.id as CollectionId;
+  const { id } = await params;
+  const collectionId = id as CollectionId;
 
   try {
     const supabase = createClient(
