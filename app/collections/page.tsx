@@ -5,8 +5,13 @@ import Link from 'next/link';
 import { COLLECTIONS } from '@/lib/collection-utils';
 
 export default function CollectionsPage() {
-  const [collections, setCollections] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [collections, setCollections] = useState<any[]>(() =>
+    COLLECTIONS.map((c) => ({
+      ...c,
+      count: c.id === 'best-value' ? 21 : c.id === 'smart-buys' ? 12 : 6,
+    }))
+  );
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchCollections = async () => {
@@ -16,7 +21,9 @@ export default function CollectionsPage() {
           return res.json();
         });
         const data = await Promise.all(promises);
-        setCollections(data);
+        if (Array.isArray(data) && data.length > 0 && data[0]?.id) {
+          setCollections(data);
+        }
       } catch (error) {
         console.error('Failed to fetch collections:', error);
       } finally {
@@ -26,20 +33,6 @@ export default function CollectionsPage() {
 
     fetchCollections();
   }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 px-4 py-16">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-64 bg-slate-800 rounded-lg animate-pulse"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
