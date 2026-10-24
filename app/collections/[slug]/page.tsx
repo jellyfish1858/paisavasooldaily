@@ -4,6 +4,9 @@ import { Metadata } from 'next';
 import { getSiteUrl } from '@/config/site';
 import ProductCard from '@/components/ProductCard';
 import AffiliateDisclosure from '@/components/AffiliateDisclosure';
+import { assignProductsToCollections, type CollectionId } from '@/lib/collection-assignment';
+import { CompareProvider } from '@/components/CompareProvider';
+import CompareArena from '@/components/CompareArena';
 
 export const dynamic = 'force-dynamic';
 
@@ -92,7 +95,10 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
     const fallback = CURATED_FALLBACK_COLLECTIONS[slug];
     const allProductsRes = await fetchProductsAction();
     const all = allProductsRes.success && Array.isArray(allProductsRes.data) ? allProductsRes.data : [];
-    fallbackProducts = all;
+    const assignments = assignProductsToCollections(all as any);
+    fallbackProducts = all.filter((p: any) =>
+      assignments.get(p.id)?.includes(slug as CollectionId)
+    );
     collection = {
       id: slug,
       title: fallback.title,
@@ -130,7 +136,7 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
   };
 
   return (
-    <>
+    <CompareProvider>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -209,7 +215,10 @@ export default async function CollectionDetailPage({ params }: CollectionPagePro
             <AffiliateDisclosure />
           </div>
         </div>
+
+        {/* Comparison Arena Drawer */}
+        <CompareArena />
       </div>
-    </>
+    </CompareProvider>
   );
 }

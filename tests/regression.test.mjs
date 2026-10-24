@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { assignProductsToCollections } from '../lib/collection-assignment.ts';
 
 // Test Suite: SmartChoice Storefront Comprehensive Regression Suite
 
@@ -420,5 +421,43 @@ test('Admin login validator safely rejects empty inputs and trims whitespace', (
   assert.equal(valid.success, true);
   assert.equal(valid.email, 'admin@example.com');
   assert.equal(valid.password, 'password123');
+});
+
+// -----------------------------------------------------------------------------
+// 10. Auto-Assign Products to Collections (lib/collection-assignment.ts)
+// -----------------------------------------------------------------------------
+test('Auto-assigns products to all 5 collections and ensures overlap', () => {
+  const sampleProducts = [
+    { id: 'p1', title: 'Luxury Laptop ₹90,000', created_at: '2026-10-01T00:00:00Z' },
+    { id: 'p2', title: 'Premium Headphones ₹25,000', created_at: '2026-10-02T00:00:00Z' },
+    { id: 'p3', title: 'Mid-range Earbuds ₹3,500', created_at: '2026-10-03T00:00:00Z' },
+    { id: 'p4', title: 'Budget Mouse ₹499', created_at: '2026-10-04T00:00:00Z' },
+  ];
+
+  const assignments = assignProductsToCollections(sampleProducts);
+
+  assert.equal(assignments.size, 4);
+
+  // All products must be in best-value
+  sampleProducts.forEach((p) => {
+    assert.ok(
+      assignments.get(p.id).includes('best-value'),
+      `Product ${p.id} must be assigned to best-value`
+    );
+  });
+
+  // Top price should have premium-picks
+  assert.ok(assignments.get('p1').includes('premium-picks'));
+
+  // Bottom price should have everyday-essentials
+  assert.ok(assignments.get('p4').includes('everyday-essentials'));
+
+  // Ensure each product appears in multiple collections
+  sampleProducts.forEach((p) => {
+    assert.ok(
+      assignments.get(p.id).length >= 2,
+      `Product ${p.id} should appear in at least 2 collections`
+    );
+  });
 });
 
