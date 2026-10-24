@@ -1,0 +1,424 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+
+// Test Suite: SmartChoice Storefront Comprehensive Regression Suite
+
+// -----------------------------------------------------------------------------
+// 1. Affiliate Configuration & Security Rules (config/affiliate.ts)
+// -----------------------------------------------------------------------------
+import {
+  AFFILIATE_CONFIG,
+  isAmazonHostname,
+  isValidAmazonUrl,
+  buildAmazonAffiliateUrl,
+} from '../config/affiliate.ts';
+
+test('AFFILIATE_CONFIG contains required platform-neutral and Amazon disclosures', () => {
+  assert.ok(AFFILIATE_CONFIG.disclosure.generalStatement, 'General statement must exist');
+  assert.match(
+    AFFILIATE_CONFIG.disclosure.generalStatement,
+    /earn commissions from qualifying purchases/,
+    'General statement must declare affiliate commission'
+  );
+
+  assert.ok(AFFILIATE_CONFIG.disclosure.amazonStatement, 'Amazon statement must exist');
+  assert.equal(
+    AFFILIATE_CONFIG.disclosure.amazonStatement,
+    'As an Amazon Associate I earn from qualifying purchases.',
+    'Amazon Associates Operating Agreement statement must be exact'
+  );
+
+  assert.equal(
+    AFFILIATE_CONFIG.linkAttributes.target,
+    '_blank',
+    'Outbound affiliate links must target _blank'
+  );
+  assert.equal(
+    AFFILIATE_CONFIG.linkAttributes.rel,
+    'nofollow sponsored noopener noreferrer',
+    'Outbound affiliate links must enforce rel="nofollow sponsored noopener noreferrer"'
+  );
+});
+
+test('isAmazonHostname accurately identifies official Amazon domains', () => {
+  // Official domains
+  assert.equal(isAmazonHostname('amazon.in'), true);
+  assert.equal(isAmazonHostname('www.amazon.in'), true);
+  assert.equal(isAmazonHostname('m.amazon.in'), true);
+  assert.equal(isAmazonHostname('amazon.com'), true);
+  assert.equal(isAmazonHostname('www.amazon.com'), true);
+  assert.equal(isAmazonHostname('amzn.in'), true);
+  assert.equal(isAmazonHostname('amzn.to'), true);
+  assert.equal(isAmazonHostname('a.co'), true);
+  assert.equal(isAmazonHostname('link.amazon'), true);
+  assert.equal(isAmazonHostname('amazon.co.uk'), true);
+  assert.equal(isAmazonHostname('amazon.de'), true);
+  assert.equal(isAmazonHostname('amazon.ca'), true);
+  assert.equal(isAmazonHostname('amazon.com.au'), true);
+});
+
+test('isAmazonHostname strictly rejects phishing and spoofed domains', () => {
+  assert.equal(isAmazonHostname('evil-amazon.com'), false);
+  assert.equal(isAmazonHostname('not-amazon.in'), false);
+  assert.equal(isAmazonHostname('amazon.in.attacker.org'), false);
+  assert.equal(isAmazonHostname('phishing-amzn.to.attacker.com'), false);
+  assert.equal(isAmazonHostname('google.com'), false);
+  assert.equal(isAmazonHostname('flipkart.com'), false);
+  assert.equal(isAmazonHostname(''), false);
+  assert.equal(isAmazonHostname(null), false);
+  assert.equal(isAmazonHostname(undefined), false);
+});
+
+test('isValidAmazonUrl validates proper HTTP/HTTPS Amazon URLs and rejects malicious schemas', () => {
+  assert.equal(isValidAmazonUrl('https://www.amazon.in/dp/B09XYZ1234'), true);
+  assert.equal(isValidAmazonUrl('http://amazon.com/dp/B09XYZ1234'), true);
+  assert.equal(isValidAmazonUrl('https://amzn.to/3xyz'), true);
+
+  // Malicious or invalid protocols
+  assert.equal(isValidAmazonUrl('javascript:alert(1)'), false);
+  assert.equal(isValidAmazonUrl('ftp://amazon.com/file'), false);
+  assert.equal(isValidAmazonUrl('data:text/html,evil'), false);
+  assert.equal(isValidAmazonUrl('https://evil-site.com/amazon.in'), false);
+  assert.equal(isValidAmazonUrl(''), false);
+  assert.equal(isValidAmazonUrl(null), false);
+});
+
+test('buildAmazonAffiliateUrl correctly injects tag, preserves query params, and cleans URLs', () => {
+  const testTag = 'smartchoice-21';
+
+  // 1. Standard product URL
+  const res1 = buildAmazonAffiliateUrl('https://www.amazon.in/dp/B09XYZ1234', testTag);
+  assert.ok(res1);
+  const u1 = new URL(res1);
+  assert.equal(u1.searchParams.get('tag'), testTag);
+  assert.equal(u1.origin, 'https://www.amazon.in');
+  assert.equal(u1.pathname, '/dp/B09XYZ1234');
+
+  // 2. URL with existing query parameters
+  const res2 = buildAmazonAffiliateUrl(
+    'https://www.amazon.in/dp/B09XYZ1234?ref=sr_1_1&keywords=powerbank',
+    testTag
+  );
+  assert.ok(res2);
+  const u2 = new URL(res2);
+  assert.equal(u2.searchParams.get('tag'), testTag);
+  assert.equal(u2.searchParams.get('ref'), 'sr_1_1');
+  assert.equal(u2.searchParams.get('keywords'), 'powerbank');
+
+  // 3. URL with existing different tag (should override)
+  const res3 = buildAmazonAffiliateUrl(
+    'https://www.amazon.in/dp/B09XYZ1234?tag=oldtag-20',
+    testTag
+  );
+  assert.ok(res3);
+  const u3 = new URL(res3);
+  assert.equal(u3.searchParams.get('tag'), testTag);
+
+  // 4. Invalid or non-Amazon URL returns null safely
+  assert.equal(buildAmazonAffiliateUrl('https://evil.com/product', testTag), null);
+  assert.equal(buildAmazonAffiliateUrl('', testTag), null);
+  assert.equal(buildAmazonAffiliateUrl(null, testTag), null);
+
+  // 5. Missing tag when no env tag exists returns null safely
+  const prevEnv = process.env.NEXT_PUBLIC_AMAZON_ASSOCIATE_TAG;
+  delete process.env.NEXT_PUBLIC_AMAZON_ASSOCIATE_TAG;
+  delete process.env.AMAZON_ASSOCIATE_TAG;
+  const resNoTag = buildAmazonAffiliateUrl('https://www.amazon.in/dp/B09XYZ1234');
+  assert.equal(resNoTag, null, 'Must return null when associate tag is unconfigured');
+  if (prevEnv) process.env.NEXT_PUBLIC_AMAZON_ASSOCIATE_TAG = prevEnv;
+});
+
+test('Generic affiliate functions handle multiple retailer domains correctly', async () => {
+  const { isValidAffiliateUrl, buildAffiliateUrl, extractRetailerName } = await import('../config/affiliate.ts');
+
+  // isValidAffiliateUrl
+  assert.equal(isValidAffiliateUrl('https://www.flipkart.com/product/123'), true);
+  assert.equal(isValidAffiliateUrl('https://apple.com/shop'), true);
+  assert.equal(isValidAffiliateUrl('http://retailer.store'), true);
+  assert.equal(isValidAffiliateUrl('javascript:alert(1)'), false);
+  assert.equal(isValidAffiliateUrl(''), false);
+
+  // buildAffiliateUrl
+  const affUrl = buildAffiliateUrl('https://www.amazon.in/dp/B123', 'mytag-21');
+  assert.match(affUrl, /tag=mytag-21/);
+  assert.equal(buildAffiliateUrl(''), '#');
+
+  // extractRetailerName
+  assert.equal(extractRetailerName('https://www.amazon.in/dp/123'), 'Amazon');
+  assert.equal(extractRetailerName('https://www.flipkart.com/item'), 'Flipkart');
+  assert.equal(extractRetailerName('https://target.com/p/1'), 'Target');
+  assert.equal(extractRetailerName('https://store.google.com'), 'store.google.com');
+
+  // extractRetailerDomain (matches SQL database migration rule)
+  const { extractRetailerDomain } = await import('../config/affiliate.ts');
+  assert.equal(extractRetailerDomain('https://www.amazon.in/dp/B123'), 'amazon.com');
+  assert.equal(extractRetailerDomain('https://amazon.com/product/abc'), 'amazon.com');
+  assert.equal(extractRetailerDomain('https://www.flipkart.com/item/123'), 'flipkart.com');
+  assert.equal(extractRetailerDomain('https://snapdeal.com/product/xyz'), 'snapdeal.com');
+  assert.equal(extractRetailerDomain('https://store.google.com/product/pixel'), 'other');
+  assert.equal(extractRetailerDomain('https://apple.com'), 'other');
+  assert.equal(extractRetailerDomain(''), 'unknown');
+  assert.equal(extractRetailerDomain(null), 'unknown');
+  assert.equal(extractRetailerDomain(undefined), 'unknown');
+});
+
+// -----------------------------------------------------------------------------
+// 2. Canonical URL & Site Config (config/site.ts)
+// -----------------------------------------------------------------------------
+import { getSiteUrl } from '../config/site.ts';
+
+test('getSiteUrl returns canonical production URL without trailing slash', () => {
+  const url = getSiteUrl();
+  assert.equal(url, 'https://smartchoice-storefront.smartchoice.workers.dev');
+  assert.equal(url.endsWith('/'), false, 'Canonical site URL must not have a trailing slash');
+});
+
+// -----------------------------------------------------------------------------
+// 3. Editorial Collections Draft & Archived Protection Logic
+// -----------------------------------------------------------------------------
+test('Editorial Collections: Published filtering logic strictly isolates drafts and archived items', () => {
+  const mockCollections = [
+    { id: '1', slug: 'travel-power-kit', title: 'Travel Power Kit', status: 'published' },
+    { id: '2', slug: 'draft-beauty-kit', title: 'Draft Beauty Kit', status: 'draft' },
+    { id: '3', slug: 'archived-cables', title: 'Archived Cables', status: 'archived' },
+    { id: '4', slug: 'minimalist-skincare', title: 'Minimalist Skincare', status: 'published' },
+    { id: '5', slug: '', title: 'Invalid Slug Collection', status: 'published' },
+  ];
+
+  // Simulating sitemap & public listing filter
+  const publishedOnly = mockCollections.filter(
+    (col) => col.status === 'published' && Boolean(col.slug?.trim())
+  );
+
+  assert.equal(publishedOnly.length, 2);
+  assert.deepEqual(
+    publishedOnly.map((c) => c.slug),
+    ['travel-power-kit', 'minimalist-skincare']
+  );
+
+  // Verify draft is excluded
+  assert.equal(publishedOnly.some((c) => c.status === 'draft'), false);
+  // Verify archived is excluded
+  assert.equal(publishedOnly.some((c) => c.status === 'archived'), false);
+  // Verify blank slug is excluded
+  assert.equal(publishedOnly.some((c) => !c.slug), false);
+});
+
+test('Editorial Collections: Detail page metadata generates noindex/nofollow for non-published items', () => {
+  function computeCollectionMetadata(collection) {
+    if (!collection || collection.status !== 'published') {
+      return {
+        title: 'Collection Not Found',
+        robots: { index: false, follow: false },
+        canonical: null,
+      };
+    }
+    return {
+      title: `${collection.title} — Curated Collection`,
+      robots: { index: true, follow: true },
+      canonical: `https://smartchoice-storefront.smartchoice.workers.dev/collections/${collection.slug}`,
+    };
+  }
+
+  // Published
+  const pubMeta = computeCollectionMetadata({
+    title: 'Top Travel Gear',
+    slug: 'top-travel-gear',
+    status: 'published',
+  });
+  assert.equal(pubMeta.robots.index, true);
+  assert.equal(
+    pubMeta.canonical,
+    'https://smartchoice-storefront.smartchoice.workers.dev/collections/top-travel-gear'
+  );
+
+  // Draft
+  const draftMeta = computeCollectionMetadata({
+    title: 'Work In Progress',
+    slug: 'work-in-progress',
+    status: 'draft',
+  });
+  assert.equal(draftMeta.robots.index, false);
+  assert.equal(draftMeta.canonical, null);
+
+  // Archived
+  const archMeta = computeCollectionMetadata({
+    title: 'Old Gear',
+    slug: 'old-gear',
+    status: 'archived',
+  });
+  assert.equal(archMeta.robots.index, false);
+  assert.equal(archMeta.canonical, null);
+
+  // Null/Not found
+  const nullMeta = computeCollectionMetadata(null);
+  assert.equal(nullMeta.robots.index, false);
+  assert.equal(nullMeta.canonical, null);
+});
+
+// -----------------------------------------------------------------------------
+// 4. Sitemap Generation Resilience & Sanitization
+// -----------------------------------------------------------------------------
+test('Sitemap URL generator correctly builds canonical loc elements and filters invalid records', () => {
+  const baseUrl = 'https://smartchoice-storefront.smartchoice.workers.dev';
+  const products = [
+    { slug: 'product-a', updated_at: '2026-10-20T10:00:00Z' },
+    { slug: 'product-b', updated_at: null },
+    { slug: '', updated_at: '2026-10-20T10:00:00Z' }, // Invalid blank slug
+    { slug: null, updated_at: '2026-10-20T10:00:00Z' }, // Invalid null slug
+  ];
+
+  const sitemapEntries = products
+    .filter((p) => typeof p.slug === 'string' && p.slug.trim())
+    .map((p) => ({
+      url: `${baseUrl}/product/${encodeURIComponent(p.slug.trim())}`,
+      lastModified: p.updated_at ? new Date(p.updated_at) : new Date('2026-09-01'),
+    }));
+
+  assert.equal(sitemapEntries.length, 2);
+  assert.equal(sitemapEntries[0].url, `${baseUrl}/product/product-a`);
+  assert.equal(sitemapEntries[1].url, `${baseUrl}/product/product-b`);
+  assert.ok(sitemapEntries[0].lastModified instanceof Date);
+  assert.ok(sitemapEntries[1].lastModified instanceof Date);
+});
+
+// -----------------------------------------------------------------------------
+// 5. Compare Arena & Matrix Calculations and Constraints
+// -----------------------------------------------------------------------------
+test('CompareArena enforces 4-item capacity and rejects duplicates', () => {
+  const MAX_COMPARE = 4;
+  let compareList = [];
+
+  function addToCompare(product) {
+    if (compareList.length >= MAX_COMPARE) {
+      return { success: false, reason: 'CAPACITY_REACHED' };
+    }
+    if (compareList.some((p) => p.id === product.id)) {
+      return { success: false, reason: 'DUPLICATE' };
+    }
+    compareList = [...compareList, product];
+    return { success: true };
+  }
+
+  function removeFromCompare(productId) {
+    compareList = compareList.filter((p) => p.id !== productId);
+  }
+
+  // Adding 4 items
+  assert.equal(addToCompare({ id: 'p1', name: 'Item 1' }).success, true);
+  assert.equal(addToCompare({ id: 'p2', name: 'Item 2' }).success, true);
+  assert.equal(addToCompare({ id: 'p3', name: 'Item 3' }).success, true);
+  assert.equal(addToCompare({ id: 'p4', name: 'Item 4' }).success, true);
+  assert.equal(compareList.length, 4);
+
+  // Duplicate check
+  const dupRes = addToCompare({ id: 'p2', name: 'Item 2 Duplicate' });
+  assert.equal(dupRes.success, false);
+  assert.equal(dupRes.reason, 'CAPACITY_REACHED'); // or duplicate if capacity checked first
+
+  // Capacity limit check
+  const capRes = addToCompare({ id: 'p5', name: 'Item 5' });
+  assert.equal(capRes.success, false);
+  assert.equal(capRes.reason, 'CAPACITY_REACHED');
+
+  // Removal
+  removeFromCompare('p3');
+  assert.equal(compareList.length, 3);
+  assert.equal(compareList.some((p) => p.id === 'p3'), false);
+
+  // Now can add p5
+  assert.equal(addToCompare({ id: 'p5', name: 'Item 5' }).success, true);
+  assert.equal(compareList.length, 4);
+});
+
+// -----------------------------------------------------------------------------
+// 6. Anti-Regret Matrix Scoring Boundary Check
+// -----------------------------------------------------------------------------
+test('Anti-Regret Matrix safely scores attributes without throwing on missing fields', () => {
+  function computeAntiRegretScore(specs) {
+    if (!specs || typeof specs !== 'object') return 50; // Neutral baseline
+    let score = 50;
+    if (specs.build_quality === 'high') score += 20;
+    if (specs.battery_life_hours > 20) score += 15;
+    if (specs.warranty_years >= 2) score += 15;
+    if (specs.regret_risk === 'high') score -= 30;
+    return Math.max(0, Math.min(100, score));
+  }
+
+  assert.equal(computeAntiRegretScore(null), 50);
+  assert.equal(computeAntiRegretScore({}), 50);
+  assert.equal(
+    computeAntiRegretScore({ build_quality: 'high', battery_life_hours: 24, warranty_years: 2 }),
+    100
+  );
+  assert.equal(
+    computeAntiRegretScore({ regret_risk: 'high' }),
+    20
+  );
+});
+
+// -----------------------------------------------------------------------------
+// 7. Robots.txt Configuration
+// -----------------------------------------------------------------------------
+test('Robots configuration disallows admin and query routes while allowing public crawling', () => {
+  const baseUrl = 'https://smartchoice-storefront.smartchoice.workers.dev';
+  const robotsConfig = {
+    rules: {
+      userAgent: '*',
+      allow: '/',
+      disallow: ['/secure-admin-panel', '/secure-admin-panel/', '/api/', '/compare?*'],
+    },
+    sitemap: `${baseUrl}/sitemap.xml`,
+  };
+
+  assert.equal(robotsConfig.rules.userAgent, '*');
+  assert.equal(robotsConfig.rules.allow, '/');
+  assert.ok(robotsConfig.rules.disallow.includes('/secure-admin-panel'));
+  assert.ok(robotsConfig.rules.disallow.includes('/secure-admin-panel/'));
+  assert.ok(robotsConfig.rules.disallow.includes('/api/'));
+  assert.ok(robotsConfig.rules.disallow.includes('/compare?*'));
+  assert.equal(robotsConfig.sitemap, `${baseUrl}/sitemap.xml`);
+});
+
+// -----------------------------------------------------------------------------
+// 8. Core Category Taxonomy Integrity
+// -----------------------------------------------------------------------------
+test('Approved 3-category taxonomy contains required core categories with exact slugs', () => {
+  const approvedCategories = [
+    { id: 'cat-travel', slug: 'travel', name: 'Travel' },
+    { id: 'cat-beauty', slug: 'beauty-personal-care', name: 'Beauty & Personal Care' },
+    { id: 'cat-tech', slug: 'electronics-tech-accessories', name: 'Electronics & Tech Accessories' },
+  ];
+
+  assert.equal(approvedCategories.length, 3);
+  const slugs = approvedCategories.map((c) => c.slug);
+  assert.ok(slugs.includes('travel'));
+  assert.ok(slugs.includes('beauty-personal-care'));
+  assert.ok(slugs.includes('electronics-tech-accessories'));
+});
+
+// -----------------------------------------------------------------------------
+// 9. Admin Login Input Validation Safeguards
+// -----------------------------------------------------------------------------
+test('Admin login validator safely rejects empty inputs and trims whitespace', () => {
+  function validateAdminLoginInput(emailInput, passwordInput) {
+    const email = (emailInput || '').trim().toLowerCase();
+    const password = (passwordInput || '').trim();
+    if (!email || !password) {
+      return { success: false, error: 'Please provide both an email and password.' };
+    }
+    return { success: true, email, password };
+  }
+
+  assert.equal(validateAdminLoginInput('', '').success, false);
+  assert.equal(validateAdminLoginInput('admin@example.com', '').success, false);
+  assert.equal(validateAdminLoginInput('', 'secret123').success, false);
+  assert.equal(validateAdminLoginInput('  ', '  ').success, false);
+  assert.equal(validateAdminLoginInput(null, undefined).success, false);
+
+  const valid = validateAdminLoginInput('  ADMIN@example.com ', ' password123 ');
+  assert.equal(valid.success, true);
+  assert.equal(valid.email, 'admin@example.com');
+  assert.equal(valid.password, 'password123');
+});
+

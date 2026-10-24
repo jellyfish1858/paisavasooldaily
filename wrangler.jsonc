@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "smartchoice-storefront",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2024-12-30",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "keep_vars": true,
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://tkwfyeeenlepahfdjjak.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrd2Z5ZWVlbmxlcGFoZmRqamFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3NTkyNzcsImV4cCI6MjEwMzMzNTI3N30.-hzo0CsLBeAfRYMa8qoWhy-ztMIvwHaK55YwwwvB__M",
+    "NEXT_PUBLIC_AMAZON_ASSOCIATE_TAG": "jellyfish180c-21",
+    "NEXT_PUBLIC_SITE_URL": "https://smartchoice-storefront.smartchoice.workers.dev"
+  }
+}
