@@ -127,18 +127,18 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
           </div>
 
           {/* Trust Badges */}
-          <div id="trust" className="relative mt-16 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto text-center font-mono scroll-mt-24">
-            <div className="p-4 bg-white/5 backdrop-blur rounded-lg border border-white/10 shadow-sm">
-              <div className="text-2xl mb-1 text-emerald-400">✓</div>
-              <p className="text-xs uppercase tracking-wider font-bold text-slate-300">AI-researched</p>
+          <div id="trust" className="relative mt-16 grid grid-cols-3 gap-4 max-w-2xl mx-auto text-center">
+            <div className="p-4 bg-white/5 backdrop-blur rounded-lg border border-white/10">
+              <div className="text-2xl mb-2">⚡</div>
+              <p className="text-sm text-gray-300">Fast Shipping</p>
             </div>
-            <div className="p-4 bg-white/5 backdrop-blur rounded-lg border border-white/10 shadow-sm">
-              <div className="text-2xl mb-1 text-amber-400">💯</div>
-              <p className="text-xs uppercase tracking-wider font-bold text-slate-300">Vetted picks</p>
+            <div className="p-4 bg-white/5 backdrop-blur rounded-lg border border-white/10">
+              <div className="text-2xl mb-2">✓</div>
+              <p className="text-sm text-gray-300">100 Verified Picks</p>
             </div>
-            <div className="p-4 bg-white/5 backdrop-blur rounded-lg border border-white/10 shadow-sm">
-              <div className="text-2xl mb-1 text-blue-400">🚀</div>
-              <p className="text-xs uppercase tracking-wider font-bold text-slate-300">Real feedback</p>
+            <div className="p-4 bg-white/5 backdrop-blur rounded-lg border border-white/10">
+              <div className="text-2xl mb-2">💰</div>
+              <p className="text-sm text-gray-300">Best Prices</p>
             </div>
           </div>
         </section>
@@ -209,13 +209,8 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {displayProducts.map((product, index) => (
-                  <div key={product.id} className="group relative">
-                    <div className="absolute -left-2 -top-2 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-[11px] font-mono font-bold text-white shadow-hard-sm border-2 border-white/20">
-                      #{index + 1}
-                    </div>
-                    <ProductCard product={product} />
-                  </div>
+                {displayProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </div>
 

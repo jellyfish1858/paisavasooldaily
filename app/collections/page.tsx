@@ -201,13 +201,8 @@ export default async function CollectionsPage() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {col.products.map((product, pIndex) => (
-                    <div key={`${col.id}-${product.id}`} className="group relative">
-                      <div className="absolute -left-2 -top-2 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-[11px] font-mono font-bold text-white shadow-hard-sm border-2 border-white/20">
-                        #{pIndex + 1}
-                      </div>
-                      <ProductCard product={product} />
-                    </div>
+                  {col.products.map((product) => (
+                    <ProductCard key={`${col.id}-${product.id}`} product={product} />
                   ))}
                 </div>
               )}
