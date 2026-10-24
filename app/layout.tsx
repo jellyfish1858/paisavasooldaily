@@ -67,66 +67,78 @@ export default function RootLayout({
         <Navbar />
         <main className="flex-grow">{children}</main>
 
-        {/* Amazon Associates Mandatory Compliance Global Footer */}
-        <footer className="border-t-2 border-line bg-paper py-10 px-4 text-center mt-16 shadow-hard-sm">
-          <div className="max-w-4xl mx-auto space-y-4">
-            <div className="flex justify-center pb-1">
-              <Link
-                href="/"
-                className="inline-block transition-opacity hover:opacity-90"
-                aria-label="SmartChoice Storefront — Anti-Regret Matrix"
-              >
-                <Image
-                  src="/brand/logo-full.png"
-                  alt="SmartChoice Storefront — Anti-Regret Matrix"
-                  width={33}
-                  height={32}
-                  className="h-8 w-auto object-contain"
-                />
-              </Link>
+      <footer className="border-t border-white/10 px-4 py-12 bg-slate-950/50 mt-auto">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            {/* Brand */}
+            <div>
+              <h4 className="text-white font-bold text-lg mb-3">SmartChoice</h4>
+              <p className="text-gray-400 text-sm">Handpicked essentials. Zero regrets.</p>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 font-mono text-xs uppercase tracking-widest font-bold text-ink">
-              <Link href="/" className="hover:text-accent transition-colors">
-                Home
-              </Link>
-              <span>•</span>
-              <Link href="/category" className="hover:text-accent transition-colors">
-                Categories
-              </Link>
-              <span>•</span>
-              <Link href="/guides" className="hover:text-accent transition-colors">
-                Buying Guides
-              </Link>
-              <span>•</span>
-              <Link href="/collections" className="hover:text-accent transition-colors">
-                Collections
-              </Link>
-              <span>•</span>
-              <Link href="/compare" className="hover:text-accent transition-colors">
-                Compare
-              </Link>
-              <span>•</span>
-              <Link href="/privacy-policy" className="hover:text-accent transition-colors underline">
-                Privacy Policy & Disclosures
-              </Link>
+            {/* Links */}
+            <div>
+              <h5 className="text-white font-semibold mb-3">Browse</h5>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/" className="text-gray-400 hover:text-white transition-colors text-sm">
+                    Home
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/collections" className="text-gray-400 hover:text-white transition-colors text-sm">
+                    Collections
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/compare" className="text-gray-400 hover:text-white transition-colors text-sm">
+                    Compare
+                  </Link>
+                </li>
+              </ul>
             </div>
 
-            {/* Global Affiliate Disclosures (Platform-Neutral + Amazon Associates Mandatory Statement) */}
-            <div className="space-y-1.5 max-w-2xl mx-auto">
-              <p className="font-mono text-xs text-ink font-bold leading-relaxed">
-                As an affiliate, I earn commissions from qualifying purchases made through links on this website.
-              </p>
-              <p className="font-mono text-xs text-muted leading-relaxed">
-                As an Amazon Associate I earn from qualifying purchases.
-              </p>
+            {/* Legal */}
+            <div>
+              <h5 className="text-white font-semibold mb-3">Legal</h5>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/privacy-policy" className="text-gray-400 hover:text-white transition-colors text-sm">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy-policy" className="text-gray-400 hover:text-white transition-colors text-sm">
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy-policy" className="text-gray-400 hover:text-white transition-colors text-sm">
+                    Affiliate Disclosure
+                  </Link>
+                </li>
+              </ul>
             </div>
 
-            <p className="font-mono text-[11px] text-muted/70">
-              © {new Date().getFullYear()} SmartChoice Storefront. Independent reviews and buying guides. Product names, logos, and brands are property of their respective owners.
-            </p>
+            {/* Contact */}
+            <div>
+              <h5 className="text-white font-semibold mb-3">Contact</h5>
+              <p className="text-gray-400 text-sm mb-2">Questions? We&apos;re here to help.</p>
+              <a href="mailto:hello@smartchoice.com" className="text-blue-400 hover:text-blue-300 text-sm">
+                hello@smartchoice.com
+              </a>
+            </div>
           </div>
-        </footer>
+
+          {/* Divider */}
+          <div className="border-t border-white/10 pt-8">
+            <div className="text-center text-gray-500 text-sm">
+              <p>© 2026 SmartChoice. All rights reserved.</p>
+              <p className="mt-2">We earn affiliate commissions to provide free, unbiased product recommendations.</p>
+            </div>
+          </div>
+        </div>
+      </footer>
       </body>
     </html>
   );
