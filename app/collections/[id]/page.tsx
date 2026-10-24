@@ -34,13 +34,28 @@ export default function CollectionDetailPage({
     fetchCollection();
   }, [collectionId]);
 
-  if (loading) {
+  if (loading && !collection) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 px-4 py-16">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
+        {/* Header */}
+        <section className="px-4 py-16 border-b border-white/10">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center gap-4 mb-4">
+              <span className="text-5xl">{collectionMeta?.icon}</span>
+              <div>
+                <h1 className="text-5xl font-bold text-white">{collectionMeta?.name || 'Collection'}</h1>
+                <p className="text-gray-300 mt-2">{collectionMeta?.description}</p>
+              </div>
+            </div>
+            <p className="text-gray-400">Loading products...</p>
+          </div>
+        </section>
+
+        {/* Pulse Skeleton */}
+        <div className="max-w-7xl mx-auto px-4 py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(12)].map((_, i) => (
-              <div key={i} className="h-96 bg-slate-800 rounded-lg animate-pulse"></div>
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-96 bg-white/5 border border-white/10 rounded-lg animate-pulse"></div>
             ))}
           </div>
         </div>
