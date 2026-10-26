@@ -88,7 +88,7 @@ function stripProductMeta(text?: string | null): string {
 export default function ReviewDetails({ product }: { product: DbProduct | any }) {
   const imageUrl = product.image_url || product.imageUrl;
   const rawRetailerUrl = product.retailer_url || product.amazon_url || product.amazonUrl;
-  const videoUrl = formatYoutubeEmbed(product.video_url || product.videoUrl);
+  const videoUrl = formatYoutubeEmbed(product.youtube_url || product.videoUrl);
 
   const rawStrengths = product.strengths || product.reasons_to_buy || product.reasonsToBuy || product.pros || [];
   const rawTradeOffs = product.trade_offs || product.reasons_not_to_buy || product.reasonsNotToBuy || product.cons || [];

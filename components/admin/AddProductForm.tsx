@@ -219,7 +219,6 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
       description: form.description.trim(),
       image_url: form.imageUrl.trim(),
       youtube_url: form.youtubeUrl.trim() || undefined,
-      video_url: form.youtubeUrl.trim() || undefined,
       retailer_url: (form.retailerUrl || form.amazonUrl).trim(),
       retailer_domain: extractRetailerDomain(form.retailerUrl || form.amazonUrl),
       amazon_url: (form.retailerUrl || form.amazonUrl).trim(),

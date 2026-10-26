@@ -91,7 +91,7 @@ export function saveStoredProduct(product: NewDbProduct & { id?: string }): DbPr
   const youtubeUrl =
     product.youtube_url ||
     (product as any).youtubeUrl ||
-    product.video_url ||
+    product.youtube_url ||
     (product as any).videoUrl ||
     undefined;
 
@@ -101,7 +101,6 @@ export function saveStoredProduct(product: NewDbProduct & { id?: string }): DbPr
     retailer_url: retailerUrl,
     retailer_domain: retailerDomain,
     amazon_url: retailerUrl,
-    video_url: youtubeUrl,
     youtube_url: youtubeUrl,
     slug: product.slug || generateSlug(product.title || "product"),
     created_at: (product as any).created_at || new Date().toISOString(),
@@ -158,7 +157,7 @@ export function updateStoredProduct(id: string, productData: Partial<DbProduct>)
       category: productData.category || "Tech",
       badge: productData.badge || "",
       image_url: productData.image_url || "",
-      video_url: productData.video_url || "",
+      youtube_url: productData.youtube_url || "",
       retailer_url: productData.retailer_url || productData.amazon_url || "https://www.amazon.in",
       retailer_domain: productData.retailer_domain || extractRetailerDomain(productData.retailer_url || productData.amazon_url || "https://www.amazon.in"),
       amazon_url: productData.retailer_url || productData.amazon_url || "https://www.amazon.in",
@@ -259,15 +258,14 @@ export function updateStoredProduct(id: string, productData: Partial<DbProduct>)
       ? productData.youtube_url
       : (productData as any).youtubeUrl !== undefined
       ? (productData as any).youtubeUrl
-      : productData.video_url !== undefined
-      ? productData.video_url
-      : existing.youtube_url || existing.video_url;
+      : productData.youtube_url !== undefined
+      ? productData.youtube_url
+      : existing.youtube_url || existing.youtube_url;
 
   const updated: DbProduct = {
     ...existing,
     ...productData,
     id: existing.id,
-    video_url: updatedYoutubeUrl || undefined,
     youtube_url: updatedYoutubeUrl || undefined,
     strengths: strengthsList,
     trade_offs: tradeOffsList,

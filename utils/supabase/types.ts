@@ -14,7 +14,6 @@ export type DbProduct = {
   badge?: string;
   description: string;
   image_url: string;
-  video_url?: string;
   youtube_url?: string | null;
   retailer_url: string;
   retailer_domain?: string;

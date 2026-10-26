@@ -56,7 +56,7 @@ export default function EditProductModal({
   const [category, setCategory] = useState(product.category || "Travel");
   const [badge, setBadge] = useState(stripProductMeta(product.badge) || "");
   const [imageUrl, setImageUrl] = useState(product.image_url || "");
-  const [youtubeUrl, setYoutubeUrl] = useState(product.youtube_url || product.video_url || "");
+  const [youtubeUrl, setYoutubeUrl] = useState(product.youtube_url || product.youtube_url || "");
   const [retailerUrl, setRetailerUrl] = useState(product.retailer_url || product.amazon_url || "");
   const [description, setDescription] = useState(stripProductMeta(product.description) || "");
   const [isOutOfStock, setIsOutOfStock] = useState(Boolean(product.is_out_of_stock));
@@ -240,7 +240,6 @@ export default function EditProductModal({
       description: description.trim(),
       image_url: imageUrl.trim(),
       youtube_url: youtubeUrl.trim() || undefined,
-      video_url: youtubeUrl.trim() || undefined,
       retailer_url: retailerUrl.trim(),
       retailer_domain: extractRetailerDomain(retailerUrl),
       amazon_url: retailerUrl.trim(),

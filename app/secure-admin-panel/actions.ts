@@ -267,8 +267,7 @@ function normalizeDbProduct(raw: any): DbProduct {
     category: normalizeCategoryName(raw.category, raw.title, raw.id),
     badge: raw.badge ? stripProductMeta(raw.badge) : undefined,
     image_url: raw.image_url || raw.imageUrl || "",
-    video_url: raw.youtube_url || raw.youtubeUrl || raw.video_url || raw.videoUrl || undefined,
-    youtube_url: raw.youtube_url || raw.youtubeUrl || raw.video_url || raw.videoUrl || undefined,
+    youtube_url: raw.youtube_url || raw.youtubeUrl || raw.videoUrl || undefined,
     retailer_url: raw.retailer_url || raw.amazon_url || raw.amazonUrl || "https://www.amazon.in",
     retailer_domain: raw.retailer_domain || extractRetailerDomain(raw.retailer_url || raw.amazon_url || raw.amazonUrl || "https://www.amazon.in"),
     amazon_url: raw.retailer_url || raw.amazon_url || raw.amazonUrl || "https://www.amazon.in",
@@ -625,7 +624,7 @@ export async function postProduct(productData: NewDbProduct): Promise<{ success:
     const youtubeUrl = (
       productData.youtube_url ||
       (productData as any).youtubeUrl ||
-      productData.video_url ||
+      productData.youtube_url ||
       ""
     ).trim();
 
@@ -637,7 +636,6 @@ export async function postProduct(productData: NewDbProduct): Promise<{ success:
       category: normalizeCategoryName(productData.category, productData.title, productId),
       badge: stripProductMeta(productData.badge || ""),
       image_url: (productData.image_url || "").trim(),
-      video_url: youtubeUrl || undefined,
       youtube_url: youtubeUrl || null,
       retailer_url: (productData.retailer_url || productData.amazon_url || "").trim(),
       retailer_domain: productData.retailer_domain || extractRetailerDomain(productData.retailer_url || productData.amazon_url || ""),
@@ -798,13 +796,13 @@ export async function updateProductAction(
       ? productData.youtube_url
       : (productData as any).youtubeUrl !== undefined
       ? (productData as any).youtubeUrl
-      : productData.video_url !== undefined
-      ? productData.video_url
+      : productData.youtube_url !== undefined
+      ? productData.youtube_url
       : undefined;
 
     if (updatedYoutubeUrl !== undefined) {
       fullUpdate.youtube_url = updatedYoutubeUrl ? updatedYoutubeUrl.trim() : null;
-      fullUpdate.video_url = updatedYoutubeUrl ? updatedYoutubeUrl.trim() : null;
+      fullUpdate.youtube_url = updatedYoutubeUrl ? updatedYoutubeUrl.trim() : null;
     }
 
     let updatedRow: any = null;
