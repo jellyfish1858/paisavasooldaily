@@ -113,13 +113,13 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
                   const element = document.getElementById("products-grid");
                   element?.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all transform hover:scale-105 shadow-lg shadow-blue-600/30 cursor-pointer"
+                className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all transform hover:scale-105 active:scale-95 shadow-lg shadow-blue-600/30 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
               >
                 Explore Now ↓
               </button>
               <Link
                 href="/collections"
-                className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all border border-white/20 backdrop-blur"
+                className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all border border-white/20 backdrop-blur hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/40"
               >
                 Browse Collections
               </Link>
@@ -140,6 +140,30 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
               <div className="text-2xl mb-2">💰</div>
               <p className="text-sm text-gray-300">Best Prices</p>
             </div>
+          </div>
+        </section>
+
+        {/* Prominent Shop Collections Banner CTA */}
+        <section className="relative px-4 py-4 max-w-7xl mx-auto">
+          <div className="bg-gradient-to-r from-blue-900/40 via-purple-900/30 to-slate-900/50 border border-blue-500/30 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl backdrop-blur">
+            <div>
+              <span className="font-mono text-xs uppercase tracking-widest text-blue-400 font-bold block mb-1">
+                ⭐ Verified Buyer Collections
+              </span>
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                Explore Themed Product Collections
+              </h2>
+              <p className="text-sm text-slate-300 mt-1 max-w-xl">
+                Browse Best Value, Everyday Essentials, Premium Picks, and Trending items ranked by customer choices.
+              </p>
+            </div>
+            <Link
+              href="/collections"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs uppercase tracking-widest font-bold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg shadow-blue-600/30 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              <span>Shop Collections</span>
+              <span aria-hidden="true">→</span>
+            </Link>
           </div>
         </section>
 

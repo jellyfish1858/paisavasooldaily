@@ -72,7 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         url: `${baseUrl}/product/${encodeURIComponent(item.slug.trim())}`,
         ...(isValidDate ? { lastModified: item.lastModified } : {}),
         changeFrequency: "weekly" as const,
-        priority: 0.8,
+        priority: 0.9,
       };
     }
   );
@@ -94,12 +94,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  // 4. Published Editorial Collections (Strictly excluding drafts and archived)
-  let collectionUrls: MetadataRoute.Sitemap = [];
+  // 4. Built-in Collections (5 Core Collections)
+  const builtInCollectionUrls: MetadataRoute.Sitemap = [
+    "best-value",
+    "premium-picks",
+    "everyday-essentials",
+    "trending-now",
+    "smart-buys",
+  ].map((slug) => ({
+    url: `${baseUrl}/collections/${slug}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
+  // 5. Published Editorial Collections (Strictly excluding drafts and archived)
+  let editorialCollectionUrls: MetadataRoute.Sitemap = [];
   try {
     const colRes = await fetchPublishedCollectionsAction();
     if (colRes && colRes.success && Array.isArray(colRes.data)) {
-      collectionUrls = colRes.data
+      editorialCollectionUrls = colRes.data
         .filter((col) => col.status === "published" && col.slug && col.slug.trim())
         .map((col) => {
           const modDate = col.updated_at || col.created_at;
@@ -118,7 +131,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Error fetching published collections for sitemap:", err);
   }
 
-  // 5. Combined Indexable Public Pages (strictly excluding admin, API, and query permutations)
+  // 6. Combined Indexable Public Pages (strictly excluding admin, API, and query permutations)
   return [
     {
       url: baseUrl,
@@ -140,9 +153,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${baseUrl}/collections`,
       changeFrequency: "weekly" as const,
-      priority: 0.9,
+      priority: 0.8,
     },
-    ...collectionUrls,
+    ...builtInCollectionUrls,
+    ...editorialCollectionUrls,
     {
       url: `${baseUrl}/compare`,
       changeFrequency: "weekly" as const,

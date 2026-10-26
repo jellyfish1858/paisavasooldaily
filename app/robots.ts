@@ -10,6 +10,8 @@ export default function robots(): MetadataRoute.Robots {
       disallow: [
         "/secure-admin-panel",
         "/secure-admin-panel/",
+        "/admin",
+        "/admin/",
         "/api/",
         "/compare?*",
       ],

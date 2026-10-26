@@ -662,5 +662,131 @@ test('assignProductsByClicksAndPrice preserves auto-assignment for other collect
   assert.ok(result.get('item-4').includes('trending-now'));
 });
 
+// -----------------------------------------------------------------------------
+// 15. SEO & Structured Data Enhancements (lib/seo.ts & lib/structured-data.ts)
+// -----------------------------------------------------------------------------
+import {
+  generateHomeMeta,
+  generateProductMeta,
+  generateCollectionMeta,
+} from '../lib/seo.ts';
+import {
+  getOrganizationSchema,
+  getProductSchema,
+  getCollectionSchema,
+} from '../lib/structured-data.ts';
+
+test('generateHomeMeta generates canonical, og, and twitter tags', () => {
+  const meta = generateHomeMeta('https://smartchoice-storefront.smartchoice.workers.dev');
+  assert.ok(meta.title.includes('SmartChoice'));
+  assert.ok(meta.description.length > 20);
+  assert.equal(meta.canonical, 'https://smartchoice-storefront.smartchoice.workers.dev');
+  assert.equal(meta.ogType, 'website');
+  assert.ok(meta.ogImage.includes('og-default.jpg'));
+  assert.equal(meta.twitter.card, 'summary_large_image');
+});
+
+test('generateProductMeta generates dynamic meta title with category and description with specs', () => {
+  const mockProduct = {
+    id: 'prod-anc-123',
+    slug: 'sony-wh-1000xm5',
+    title: 'Sony WH-1000XM5 Wireless Headphones',
+    category: 'Electronics & Tech Accessories',
+    quick_take: 'Industry-leading noise canceling with exceptional comfort.',
+    key_specs: ['Battery: 30 hours', 'Weight: 250g', 'Bluetooth: 5.2'],
+    image_url: 'https://example.com/sony.jpg',
+  };
+
+  const meta = generateProductMeta(mockProduct, 'https://smartchoice-storefront.smartchoice.workers.dev');
+  assert.equal(
+    meta.title,
+    'Sony WH-1000XM5 Wireless Headphones | Electronics & Tech Accessories | SmartChoice'
+  );
+  assert.ok(meta.description.includes('Industry-leading noise canceling'));
+  assert.ok(meta.description.includes('Battery: 30 hours'));
+  assert.equal(
+    meta.canonical,
+    'https://smartchoice-storefront.smartchoice.workers.dev/product/sony-wh-1000xm5'
+  );
+  assert.equal(meta.ogImage, 'https://example.com/sony.jpg');
+});
+
+test('generateCollectionMeta generates dynamic meta title and description with product count', () => {
+  const mockCollection = {
+    id: 'best-value',
+    name: 'Best Value',
+    description: 'Top-rated products ranked by real customer choices',
+    count: 12,
+  };
+
+  const meta = generateCollectionMeta(mockCollection, 'https://smartchoice-storefront.smartchoice.workers.dev');
+  assert.equal(meta.title, 'Best Value Collection — Curated Top Picks | SmartChoice');
+  assert.ok(meta.description.includes('ranked by real customer choices'));
+  assert.ok(meta.description.includes('12'));
+  assert.equal(
+    meta.canonical,
+    'https://smartchoice-storefront.smartchoice.workers.dev/collections/best-value'
+  );
+});
+
+test('getOrganizationSchema returns valid Organization JSON-LD', () => {
+  const schema = getOrganizationSchema('https://smartchoice-storefront.smartchoice.workers.dev');
+  assert.equal(schema['@context'], 'https://schema.org');
+  assert.equal(schema['@type'], 'Organization');
+  assert.equal(schema.name, 'SmartChoice Storefront');
+  assert.ok(schema.url);
+  assert.ok(schema.logo);
+  assert.ok(schema.contactPoint);
+  assert.equal(schema.contactPoint['@type'], 'ContactPoint');
+});
+
+test('getProductSchema returns valid Product JSON-LD with offers and aggregateRating', () => {
+  const mockProduct = {
+    id: 'p-1',
+    slug: 'wosta-mug',
+    title: 'Wosta Insulated Coffee Mug',
+    description: 'Double walled stainless steel travel mug.',
+    category: 'Travel',
+    price: 999,
+    image_url: 'https://example.com/mug.jpg',
+    is_out_of_stock: false,
+  };
+
+  const schema = getProductSchema(mockProduct, 'https://smartchoice-storefront.smartchoice.workers.dev');
+  assert.ok(schema);
+  assert.equal(schema['@context'], 'https://schema.org');
+  assert.equal(schema['@type'], 'Product');
+  assert.equal(schema.name, 'Wosta Insulated Coffee Mug');
+  assert.equal(schema.offers['@type'], 'Offer');
+  assert.equal(schema.offers.priceCurrency, 'INR');
+  assert.equal(schema.offers.availability, 'https://schema.org/InStock');
+  assert.equal(schema.aggregateRating['@type'], 'AggregateRating');
+  assert.equal(schema.aggregateRating.ratingValue, '4.8');
+});
+
+test('getCollectionSchema returns valid CollectionPage JSON-LD with ItemList', () => {
+  const mockCollection = {
+    id: 'smart-buys',
+    name: 'Smart Buys',
+    description: 'High value items.',
+    products: [
+      { id: '1', slug: 'item-1', title: 'Item 1' },
+      { id: '2', slug: 'item-2', title: 'Item 2' },
+    ],
+  };
+
+  const schema = getCollectionSchema(mockCollection, 'https://smartchoice-storefront.smartchoice.workers.dev');
+  assert.ok(schema);
+  assert.equal(schema['@context'], 'https://schema.org');
+  assert.equal(schema['@type'], 'CollectionPage');
+  assert.equal(schema.name, 'Smart Buys');
+  assert.equal(schema.mainEntity['@type'], 'ItemList');
+  assert.equal(schema.mainEntity.numberOfItems, 2);
+  assert.equal(schema.mainEntity.itemListElement.length, 2);
+  assert.equal(schema.mainEntity.itemListElement[0]['@type'], 'ListItem');
+  assert.equal(schema.mainEntity.itemListElement[0].position, 1);
+});
+
+
 
 

@@ -1,26 +1,14 @@
 import type { Metadata } from "next";
 import { fetchProductsAction } from "@/app/secure-admin-panel/actions";
 import { getSiteUrl } from "@/config/site";
+import { generateHomeMeta } from "@/lib/seo";
+import { getOrganizationSchema } from "@/lib/structured-data";
 import StorefrontClient from "./StorefrontClient";
 import type { DbProduct } from "@/utils/supabase/types";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "SmartChoice Storefront — Curated Picks & Anti-Regret Product Research",
-  description:
-    "Independent editorial product research, Anti-Regret matrix analysis, and decision support before purchasing across Tech, Travel, and Beauty.",
-  alternates: {
-    canonical: getSiteUrl(),
-  },
-  openGraph: {
-    title: "SmartChoice Storefront — Curated Picks & Anti-Regret Product Research",
-    description:
-      "Independent editorial product research, Anti-Regret matrix analysis, and decision support before purchasing across Tech, Travel, and Beauty.",
-    url: getSiteUrl(),
-    type: "website",
-  },
-};
+export const metadata: Metadata = generateHomeMeta().metadata;
 
 export default async function StorefrontHome() {
   let products: DbProduct[] = [];

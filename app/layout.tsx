@@ -1,9 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import Image from "next/image";
 import { getSiteUrl } from "@/config/site";
+import { getOrganizationSchema } from "@/lib/structured-data";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#020617",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -15,6 +22,8 @@ export const metadata: Metadata = {
     "Unbiased editorial product research, comprehensive Anti-Regret matrix analysis, and curated recommendations across all categories.",
   icons: {
     icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
   },
   verification: {
     google: "OBLUySHXK_7EiNkxlTYKoSKvj12e2zyk_VrxoKNro7k",
@@ -61,8 +70,17 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const organizationSchema = getOrganizationSchema();
+
   return (
     <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+      </head>
       <body className="flex flex-col min-h-screen bg-canvas text-ink antialiased">
         <Navbar />
         <main className="flex-grow">{children}</main>
