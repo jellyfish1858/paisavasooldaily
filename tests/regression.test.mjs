@@ -514,4 +514,153 @@ test('Product data model preserves youtube_url and automatically qualifies for c
   assert.ok(collectionsMap.get(testId).includes('trending-now'));
 });
 
+// -----------------------------------------------------------------------------
+// 14. Click Tracking Analytics Data Layer & Collection Ranking
+// -----------------------------------------------------------------------------
+import {
+  calculateProductClickAnalytics,
+  extractRetailerDomainFromUrl,
+} from '../lib/analytics.ts';
+import {
+  sortBestValueProducts,
+  assignProductsByClicksAndPrice,
+  extractPrice,
+} from '../lib/collection-utils.ts';
+
+test('calculateProductClickAnalytics: groups clicks by product_id and retailer_domain', () => {
+  const mockProducts = [
+    { id: 'prod-1', title: 'Wireless ANC Headphones', retailer_url: 'https://www.amazon.in/dp/B01' },
+    { id: 'prod-2', title: 'Ergonomic Laptop Stand', retailer_url: 'https://flipkart.com/item/2' },
+    { id: 'prod-3', title: 'Travel Umbrella', retailer_url: 'https://amazon.com/dp/B03' },
+    { id: 'prod-4', title: 'Zero Click Gadget', retailer_url: 'https://brand.com/item' },
+  ];
+
+  const mockClicks = [
+    { product_id: 'prod-1', retailer_domain: 'amazon.in', count: 5 },
+    { product_id: 'prod-1', retailer_domain: 'amazon.com', count: 3 },
+    { product_id: 'prod-2', retailer_domain: 'flipkart.com', count: 2 },
+    { product_id: 'prod-3', retailer_domain: 'amazon.com', count: 12 },
+  ];
+
+  const result = calculateProductClickAnalytics(mockProducts, mockClicks);
+
+  // Total clicks calculation
+  assert.equal(result.totalClicks, 22); // 5 + 3 + 2 + 12
+  assert.equal(result.totalProducts, 4);
+  assert.equal(result.avgClicksPerProduct, 5.5); // 22 / 4
+
+  // Top product ranking: prod-3 has 12 clicks
+  assert.ok(result.topProduct);
+  assert.equal(result.topProduct.productId, 'prod-3');
+  assert.equal(result.topProduct.totalClicks, 12);
+
+  // Return data format specification check: { productId, productTitle, totalClicks, retailerDomain, clicksPerDomain: {} }
+  const prod1Data = result.products.find((p) => p.productId === 'prod-1');
+  assert.ok(prod1Data);
+  assert.equal(prod1Data.productId, 'prod-1');
+  assert.equal(prod1Data.productTitle, 'Wireless ANC Headphones');
+  assert.equal(prod1Data.totalClicks, 8);
+  assert.equal(prod1Data.clicksPerDomain['amazon.in'], 5);
+  assert.equal(prod1Data.clicksPerDomain['amazon.com'], 3);
+
+  // Safe null handling for 0-click products: prod-4
+  const prod4Data = result.products.find((p) => p.productId === 'prod-4');
+  assert.ok(prod4Data);
+  assert.equal(prod4Data.totalClicks, 0);
+  assert.deepEqual(prod4Data.clicksPerDomain, {});
+
+  // Top 5 products
+  assert.equal(result.top5Products.length, 4); // only 4 products in mock
+  assert.equal(result.top5Products[0].productId, 'prod-3'); // 12 clicks
+  assert.equal(result.top5Products[1].productId, 'prod-1'); // 8 clicks
+  assert.equal(result.top5Products[2].productId, 'prod-2'); // 2 clicks
+  assert.equal(result.top5Products[3].productId, 'prod-4'); // 0 clicks
+});
+
+test('calculateProductClickAnalytics: handles empty or null input safely', () => {
+  const result = calculateProductClickAnalytics([], []);
+  assert.equal(result.totalClicks, 0);
+  assert.equal(result.totalProducts, 0);
+  assert.equal(result.avgClicksPerProduct, 0);
+  assert.equal(result.topProduct, null);
+  assert.deepEqual(result.top5Products, []);
+  assert.deepEqual(result.top10Products, []);
+
+  // Safe handling of null/undefined
+  const nullResult = calculateProductClickAnalytics(null, null);
+  assert.equal(nullResult.totalClicks, 0);
+  assert.equal(nullResult.totalProducts, 0);
+});
+
+test('extractRetailerDomainFromUrl accurately normalizes domains', () => {
+  assert.equal(extractRetailerDomainFromUrl('https://www.amazon.in/dp/B123'), 'amazon.in');
+  assert.equal(extractRetailerDomainFromUrl('http://flipkart.com/item'), 'flipkart.com');
+  assert.equal(extractRetailerDomainFromUrl('https://snapdeal.com/product'), 'snapdeal.com');
+  assert.equal(extractRetailerDomainFromUrl(''), 'unknown');
+  assert.equal(extractRetailerDomainFromUrl(null), 'unknown');
+});
+
+test('sortBestValueProducts: ranks products by click count descending with price tiebreaker', () => {
+  const mockProducts = [
+    { id: 'p1', title: 'Budget Cable', price: 299 },
+    { id: 'p2', title: 'Mid-range Charger', price: 999 },
+    { id: 'p3', title: 'Premium Powerbank', price: 2499 },
+    { id: 'p4', title: 'Tiebreaker Item A (Expensive)', price: 1500 },
+    { id: 'p5', title: 'Tiebreaker Item B (Cheap)', price: 500 },
+  ];
+
+  // Click counts: p3 has 50, p1 has 30, p4 and p5 both have 10, p2 has 0
+  const clickMap = new Map([
+    ['p3', 50],
+    ['p1', 30],
+    ['p4', 10],
+    ['p5', 10],
+    ['p2', 0],
+  ]);
+
+  const sorted = sortBestValueProducts(mockProducts, clickMap);
+
+  // Highest clicks first
+  assert.equal(sorted[0].id, 'p3'); // 50 clicks
+  assert.equal(sorted[1].id, 'p1'); // 30 clicks
+
+  // Tiebreaker: p4 (price 1500) beats p5 (price 500)
+  assert.equal(sorted[2].id, 'p4'); // 10 clicks, price 1500
+  assert.equal(sorted[3].id, 'p5'); // 10 clicks, price 500
+
+  // Lowest clicks last
+  assert.equal(sorted[4].id, 'p2'); // 0 clicks
+});
+
+test('assignProductsByClicksAndPrice preserves auto-assignment for other collections while ranking Best Value', () => {
+  const mockProducts = [
+    { id: 'item-1', title: 'Headphones', price: 2999, createdAt: '2026-01-01' },
+    { id: 'item-2', title: 'Mouse', price: 799, createdAt: '2026-01-02' },
+    { id: 'item-3', title: 'Keyboard', price: 1499, createdAt: '2026-01-03' },
+    { id: 'item-4', title: 'Monitor', price: 8999, createdAt: '2026-01-04' },
+  ];
+
+  const clickMap = {
+    'item-2': 100, // Mouse has most clicks
+    'item-1': 50,
+    'item-4': 20,
+    'item-3': 0,
+  };
+
+  const result = assignProductsByClicksAndPrice(mockProducts, clickMap);
+
+  // Best Value is sorted by clicks
+  assert.equal(result.sortedBestValue[0].id, 'item-2'); // 100 clicks
+  assert.equal(result.sortedBestValue[1].id, 'item-1'); // 50 clicks
+
+  // All products are still assigned to Best Value
+  mockProducts.forEach((p) => {
+    assert.ok(result.get(p.id).includes('best-value'));
+  });
+
+  // Trending Now still includes the newest product (item-4)
+  assert.ok(result.get('item-4').includes('trending-now'));
+});
+
+
 

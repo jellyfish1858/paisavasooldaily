@@ -131,3 +131,52 @@ function extractPrice(product: Product): number | null {
   }
   return 1000 + Math.abs(hash % 9000);
 }
+
+/**
+ * Sorts products for the "Best Value" collection:
+ * 1. Click count (descending) first.
+ * 2. Price as tiebreaker (descending).
+ */
+export function sortBestValueProducts(
+  products: Product[],
+  clickMap?: Map<string, number> | Record<string, number>
+): Product[] {
+  const getClicks = (id: string): number => {
+    if (!clickMap) return 0;
+    if (clickMap instanceof Map) return clickMap.get(id) || 0;
+    return (clickMap as Record<string, number>)[id] || 0;
+  };
+
+  return [...products].sort((a, b) => {
+    const clicksA = getClicks(a.id);
+    const clicksB = getClicks(b.id);
+    if (clicksB !== clicksA) {
+      return clicksB - clicksA;
+    }
+    const priceA = extractPrice(a) || 0;
+    const priceB = extractPrice(b) || 0;
+    return priceB - priceA;
+  });
+}
+
+/**
+ * Assigns products to collections with click and price ranking.
+ * "Best Value" collection: Sort products by click count (descending) first, then price as tiebreaker.
+ * Other collections: Keep existing auto-assignment logic.
+ */
+export function assignProductsByClicksAndPrice(
+  products: Product[],
+  clickMap?: Map<string, number> | Record<string, number>
+) {
+  const assignments = assignProductsToCollections(products);
+  const sortedBestValue = sortBestValueProducts(products, clickMap);
+
+  const result: any = [...sortedBestValue];
+  result.get = (id: string) => assignments.get(id);
+  result.has = (id: string) => assignments.has(id);
+  result.assignments = assignments;
+  result.sortedBestValue = sortedBestValue;
+  return result;
+}
+
+

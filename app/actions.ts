@@ -9,6 +9,7 @@ export {
   updateProductAction,
   deleteProduct,
   fetchAnalyticsAction,
+  fetchProductClickAnalyticsAction,
   recordClickAction,
   fetchPublishedCollectionsAction,
   fetchCollectionBySlugAction,

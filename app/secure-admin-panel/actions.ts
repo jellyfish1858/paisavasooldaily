@@ -26,6 +26,11 @@ import {
   getStoredClicks,
 } from "@/utils/storage";
 import { extractRetailerDomain } from "@/config/affiliate";
+import {
+  calculateProductClickAnalytics,
+  type AnalyticsSummary,
+  type ProductClickData,
+} from "@/lib/analytics";
 
 function stripProductMeta(text?: string | null): string {
   if (!text || typeof text !== "string") return "";
@@ -903,12 +908,27 @@ export async function deleteProduct(productId: string): Promise<{ success: boole
  * Records an outbound affiliate click event.
  * Minimal public INSERT permitted by RLS.
  */
-export async function recordClickAction(productId: string): Promise<{ success: boolean }> {
+export async function recordClickAction(
+  productId: string,
+  retailerDomain?: string
+): Promise<{ success: boolean }> {
   try {
     const supabase = await createClient();
     const today = new Date().toISOString().split("T")[0];
 
-    // Minimal append-only INSERT (Row Level Security permits anon INSERT)
+    // 1. Record into affiliate_clicks
+    try {
+      await supabase.from("affiliate_clicks").insert([
+        {
+          product_id: productId,
+          retailer_domain: retailerDomain || "unknown",
+        },
+      ]);
+    } catch (e) {
+      console.warn("affiliate_clicks insert notice:", e);
+    }
+
+    // 2. Minimal append-only INSERT (Row Level Security permits anon INSERT)
     const { error } = await supabase.from("clicks").insert([
       {
         product_id: productId,
@@ -933,6 +953,88 @@ export async function recordClickAction(productId: string): Promise<{ success: b
       recordStoredClick(productId);
     } catch {}
     return { success: true };
+  }
+}
+
+/**
+ * Fetches grouped product click analytics from affiliate_clicks (with fallback to clicks/local).
+ * Returns data in format: { productId, productTitle, totalClicks, retailerDomain, clicksPerDomain: {} }
+ * Protected by server-side requireAdmin().
+ */
+export async function fetchProductClickAnalyticsAction(): Promise<{
+  success: boolean;
+  error?: string;
+  data: AnalyticsSummary;
+}> {
+  try {
+    const authCheck = await requireAdmin();
+    if (!authCheck.authorized) {
+      return {
+        success: false,
+        error: authCheck.error,
+        data: calculateProductClickAnalytics([], []),
+      };
+    }
+
+    const { supabase } = authCheck;
+
+    // 1. Fetch products
+    const productsRes = await fetchProductsAction();
+    const products = productsRes.data || [];
+
+    // 2. Query affiliate_clicks
+    let rawClicks: any[] = [];
+    try {
+      const { data: affClicks, error: affErr } = await supabase
+        .from("affiliate_clicks")
+        .select("id, product_id, retailer_domain, created_at")
+        .order("created_at", { ascending: false });
+
+      if (!affErr && Array.isArray(affClicks) && affClicks.length > 0) {
+        rawClicks = affClicks;
+      }
+    } catch (e) {
+      console.warn("affiliate_clicks query fallback notice:", e);
+    }
+
+    // 3. Fallback to clicks table if affiliate_clicks was empty or errored
+    if (rawClicks.length === 0) {
+      try {
+        const { data: legacyClicks, error: legErr } = await supabase
+          .from("clicks")
+          .select("id, product_id, count, date, created_at");
+
+        if (!legErr && Array.isArray(legacyClicks) && legacyClicks.length > 0) {
+          rawClicks = legacyClicks;
+        }
+      } catch (e) {
+        console.warn("clicks query fallback notice:", e);
+      }
+    }
+
+    // 4. Fallback to local stored clicks if still empty
+    if (rawClicks.length === 0) {
+      try {
+        const localClicks = getStoredClicks();
+        if (Array.isArray(localClicks) && localClicks.length > 0) {
+          rawClicks = localClicks;
+        }
+      } catch {}
+    }
+
+    const summary = calculateProductClickAnalytics(products, rawClicks);
+
+    return {
+      success: true,
+      data: summary,
+    };
+  } catch (err: any) {
+    console.error("fetchProductClickAnalyticsAction error:", err);
+    return {
+      success: false,
+      error: err?.message || "Failed to fetch analytics",
+      data: calculateProductClickAnalytics([], []),
+    };
   }
 }
 

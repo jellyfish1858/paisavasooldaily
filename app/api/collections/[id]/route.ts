@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { assignProductsToCollections, COLLECTIONS, type CollectionId } from '@/lib/collection-utils';
+import {
+  assignProductsToCollections,
+  sortBestValueProducts,
+  COLLECTIONS,
+  type CollectionId,
+} from '@/lib/collection-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,7 +29,29 @@ export async function GET(
     }
 
     const assignments = assignProductsToCollections(products as any[]);
-    const collectionProducts = products.filter(p => assignments.get(p.id)?.includes(collectionId));
+    let collectionProducts = products.filter(p => assignments.get(p.id)?.includes(collectionId));
+
+    // Sort "Best Value" collection by click count (descending) first, then price as tiebreaker
+    if (collectionId === 'best-value') {
+      const clickMap = new Map<string, number>();
+      try {
+        const { data: clickRows } = await supabase
+          .from('affiliate_clicks')
+          .select('product_id');
+
+        if (clickRows && Array.isArray(clickRows)) {
+          clickRows.forEach((row: any) => {
+            if (row.product_id) {
+              clickMap.set(row.product_id, (clickMap.get(row.product_id) || 0) + 1);
+            }
+          });
+        }
+      } catch (clickErr) {
+        console.warn('affiliate_clicks query note for best-value sorting:', clickErr);
+      }
+
+      collectionProducts = sortBestValueProducts(collectionProducts as any[], clickMap);
+    }
 
     const collection = COLLECTIONS.find(c => c.id === collectionId);
 

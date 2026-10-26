@@ -2,7 +2,7 @@
 
 import React from "react";
 import { recordClickAction } from "@/app/actions";
-import { buildAffiliateUrl, isValidAffiliateUrl, extractRetailerName, AFFILIATE_CONFIG } from "@/config/affiliate";
+import { buildAffiliateUrl, isValidAffiliateUrl, extractRetailerName, extractRetailerDomain, AFFILIATE_CONFIG } from "@/config/affiliate";
 
 export type RetailerCtaVariant =
   | "hero"
@@ -46,7 +46,8 @@ export default function RetailerCTA({
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (productId) {
-      recordClickAction(productId).catch(() => {});
+      const domain = extractRetailerDomain(url);
+      recordClickAction(productId, domain).catch(() => {});
     }
   };
 

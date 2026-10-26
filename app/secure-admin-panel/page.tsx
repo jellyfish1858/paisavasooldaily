@@ -16,12 +16,12 @@ import {
 } from "@/app/secure-admin-panel/actions";
 import type { DbProduct, DbCollection } from "@/utils/supabase/types";
 
-type AdminTab = "dashboard" | "published" | "publish" | "collections";
+type AdminTab = "products" | "analytics" | "publish" | "collections" | "dashboard" | "published";
 
 export default function SecureAdminPanel() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
+  const [activeTab, setActiveTab] = useState<AdminTab>("products");
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [collections, setCollections] = useState<DbCollection[]>([]);
@@ -166,31 +166,34 @@ export default function SecureAdminPanel() {
         </div>
       </header>
 
-      {/* Navigation Tabs */}
+      {/* Navigation Tabs: Product Manager | Analytics */}
       <div className="flex flex-wrap gap-2 border-b-2 border-line pb-4">
         <button
-          onClick={() => setActiveTab("dashboard")}
+          id="tab-product-manager"
+          onClick={() => setActiveTab("products")}
           className={`border-2 border-line px-5 py-3 font-mono text-xs uppercase tracking-widest font-bold transition-all ${
-            activeTab === "dashboard"
+            activeTab === "products" || activeTab === "published"
               ? "bg-accent text-ink shadow-hard-sm"
               : "bg-paper text-ink hover:bg-panel"
           }`}
         >
-          📊 Clicks Dashboard
+          📦 Product Manager ({products.length})
         </button>
 
         <button
-          onClick={() => setActiveTab("published")}
+          id="tab-analytics"
+          onClick={() => setActiveTab("analytics")}
           className={`border-2 border-line px-5 py-3 font-mono text-xs uppercase tracking-widest font-bold transition-all ${
-            activeTab === "published"
+            activeTab === "analytics" || activeTab === "dashboard"
               ? "bg-accent text-ink shadow-hard-sm"
               : "bg-paper text-ink hover:bg-panel"
           }`}
         >
-          📦 Published Products ({products.length})
+          📈 Analytics
         </button>
 
         <button
+          id="tab-publish"
           onClick={() => setActiveTab("publish")}
           className={`border-2 border-line px-5 py-3 font-mono text-xs uppercase tracking-widest font-bold transition-all ${
             activeTab === "publish"
@@ -202,6 +205,7 @@ export default function SecureAdminPanel() {
         </button>
 
         <button
+          id="tab-collections"
           onClick={() => setActiveTab("collections")}
           className={`border-2 border-line px-5 py-3 font-mono text-xs uppercase tracking-widest font-bold transition-all ${
             activeTab === "collections"
@@ -215,17 +219,8 @@ export default function SecureAdminPanel() {
 
       {/* Tab Content */}
       <div className="pt-2">
-        {/* Tab 1: Clicks & Analytics Dashboard */}
-        {activeTab === "dashboard" && (
-          <ClicksDashboard
-            products={products}
-            onNavigateToPublish={() => setActiveTab("publish")}
-            onNavigateToProducts={() => setActiveTab("published")}
-          />
-        )}
-
-        {/* Tab 2: Published Products Manager with Search, Edit & Delete */}
-        {activeTab === "published" && (
+        {/* Tab 1: Product Manager */}
+        {(activeTab === "products" || activeTab === "published") && (
           <div>
             {loadingProducts ? (
               <div className="border-2 border-line bg-paper p-16 text-center shadow-hard">
@@ -246,6 +241,17 @@ export default function SecureAdminPanel() {
               />
             )}
           </div>
+        )}
+
+        {/* Tab 2: Analytics Dashboard */}
+        {(activeTab === "analytics" || activeTab === "dashboard") && (
+          <ClicksDashboard
+            products={products}
+            onNavigateToPublish={() => setActiveTab("publish")}
+            onNavigateToProducts={() => setActiveTab("products")}
+            onProductUpdated={() => loadProducts()}
+            onError={handleError}
+          />
         )}
 
         {/* Tab 3: Publish a Product Form */}
