@@ -267,7 +267,8 @@ function normalizeDbProduct(raw: any): DbProduct {
     category: normalizeCategoryName(raw.category, raw.title, raw.id),
     badge: raw.badge ? stripProductMeta(raw.badge) : undefined,
     image_url: raw.image_url || raw.imageUrl || "",
-    video_url: raw.video_url || raw.videoUrl || undefined,
+    video_url: raw.youtube_url || raw.youtubeUrl || raw.video_url || raw.videoUrl || undefined,
+    youtube_url: raw.youtube_url || raw.youtubeUrl || raw.video_url || raw.videoUrl || undefined,
     retailer_url: raw.retailer_url || raw.amazon_url || raw.amazonUrl || "https://www.amazon.in",
     retailer_domain: raw.retailer_domain || extractRetailerDomain(raw.retailer_url || raw.amazon_url || raw.amazonUrl || "https://www.amazon.in"),
     amazon_url: raw.retailer_url || raw.amazon_url || raw.amazonUrl || "https://www.amazon.in",
@@ -621,6 +622,13 @@ export async function postProduct(productData: NewDbProduct): Promise<{ success:
 
     const productId = (productData as any).id;
 
+    const youtubeUrl = (
+      productData.youtube_url ||
+      (productData as any).youtubeUrl ||
+      productData.video_url ||
+      ""
+    ).trim();
+
     const fullPayload: Record<string, any> = {
       ...(productId ? { id: productId } : {}),
       title: stripProductMeta(productData.title || ""),
@@ -629,6 +637,8 @@ export async function postProduct(productData: NewDbProduct): Promise<{ success:
       category: normalizeCategoryName(productData.category, productData.title, productId),
       badge: stripProductMeta(productData.badge || ""),
       image_url: (productData.image_url || "").trim(),
+      video_url: youtubeUrl || undefined,
+      youtube_url: youtubeUrl || null,
       retailer_url: (productData.retailer_url || productData.amazon_url || "").trim(),
       retailer_domain: productData.retailer_domain || extractRetailerDomain(productData.retailer_url || productData.amazon_url || ""),
       quick_take: quickTake || undefined,
@@ -661,10 +671,16 @@ export async function postProduct(productData: NewDbProduct): Promise<{ success:
       .select()
       .single();
 
-    if (fullErr && fullErr.message?.includes("retailer_url")) {
-      const fallbackPayload: Record<string, any> = { ...fullPayload, amazon_url: fullPayload.retailer_url };
-      delete fallbackPayload.retailer_url;
-      delete fallbackPayload.retailer_domain;
+    if (fullErr && (fullErr.message?.includes("youtube_url") || fullErr.message?.includes("retailer_url"))) {
+      const fallbackPayload: Record<string, any> = { ...fullPayload };
+      if (fullErr.message?.includes("youtube_url")) {
+        delete fallbackPayload.youtube_url;
+      }
+      if (fullErr.message?.includes("retailer_url")) {
+        fallbackPayload.amazon_url = fallbackPayload.retailer_url;
+        delete fallbackPayload.retailer_url;
+        delete fallbackPayload.retailer_domain;
+      }
       const retry = await supabase.from("products").insert([fallbackPayload]).select().single();
       if (!retry.error && retry.data) {
         fullData = retry.data;
@@ -778,6 +794,19 @@ export async function updateProductAction(
     if (productData.research_sources !== undefined) fullUpdate.research_sources = productData.research_sources;
     if (productData.last_reviewed_at !== undefined) fullUpdate.last_reviewed_at = productData.last_reviewed_at;
 
+    const updatedYoutubeUrl = productData.youtube_url !== undefined
+      ? productData.youtube_url
+      : (productData as any).youtubeUrl !== undefined
+      ? (productData as any).youtubeUrl
+      : productData.video_url !== undefined
+      ? productData.video_url
+      : undefined;
+
+    if (updatedYoutubeUrl !== undefined) {
+      fullUpdate.youtube_url = updatedYoutubeUrl ? updatedYoutubeUrl.trim() : null;
+      fullUpdate.video_url = updatedYoutubeUrl ? updatedYoutubeUrl.trim() : null;
+    }
+
     let updatedRow: any = null;
 
     // Update via authenticated client (RLS enforces public.is_admin())
@@ -788,13 +817,18 @@ export async function updateProductAction(
       .select()
       .maybeSingle();
 
-    if (fullErr && fullErr.message?.includes("retailer_url")) {
+    if (fullErr && (fullErr.message?.includes("youtube_url") || fullErr.message?.includes("retailer_url"))) {
       const fallbackUpdate: Record<string, any> = { ...fullUpdate };
-      if (fallbackUpdate.retailer_url !== undefined) {
-        fallbackUpdate.amazon_url = fallbackUpdate.retailer_url;
+      if (fullErr.message?.includes("youtube_url")) {
+        delete fallbackUpdate.youtube_url;
       }
-      delete fallbackUpdate.retailer_url;
-      delete fallbackUpdate.retailer_domain;
+      if (fullErr.message?.includes("retailer_url")) {
+        if (fallbackUpdate.retailer_url !== undefined) {
+          fallbackUpdate.amazon_url = fallbackUpdate.retailer_url;
+        }
+        delete fallbackUpdate.retailer_url;
+        delete fallbackUpdate.retailer_domain;
+      }
       const retry = await supabase.from("products").update(fallbackUpdate).eq("id", id).select().maybeSingle();
       if (!retry.error && retry.data) {
         fullData = retry.data;

@@ -224,6 +224,11 @@ export default function ProductManager({
                         In Stock
                       </span>
                     )}
+                    {(product.youtube_url || product.video_url) && (
+                      <span className="inline-block border border-line bg-panel px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider font-bold text-muted">
+                        Video added
+                      </span>
+                    )}
                     {product.retailer_domain && product.retailer_domain !== "unknown" && (
                       <span className="inline-block border border-line bg-panel px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider font-bold text-muted">
                         🌐 {product.retailer_domain}

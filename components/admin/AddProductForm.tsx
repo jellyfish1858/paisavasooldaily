@@ -4,6 +4,9 @@ import { useState, type FormEvent } from "react";
 import { postProduct } from "@/app/secure-admin-panel/actions";
 import type { DbProduct, NewDbProduct, QualitativeRating, ResearchSource } from "@/utils/supabase/types";
 import { extractRetailerDomain } from "@/config/affiliate";
+import { isValidYouTubeUrl } from "@/lib/validation";
+
+export { isValidYouTubeUrl };
 
 type Props = {
   onSuccess: (message: string) => void;
@@ -28,16 +31,16 @@ const emptyForm = {
   badge: "Best Value",
   description: "",
   imageUrl: "",
-  videoUrl: "",
+  youtubeUrl: "",
   retailerUrl: "",
   amazonUrl: "",
   isOutOfStock: false,
 
   // Decision Information
   quickTake: "",
-  keySpecsRaw: "",
-  strengthsRaw: "",
-  tradeOffsRaw: "",
+  pros: [""],
+  cons: [""],
+  keySpecs: [{ key: "", value: "" }],
   goodForRaw: "",
   skipIfRaw: "",
   whatToCheckRaw: "",
@@ -119,6 +122,51 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
     setForm((f) => ({ ...f, [key]: value }));
   };
 
+  // Pros Handlers
+  const handleProChange = (index: number, val: string) => {
+    setForm((f) => {
+      const next = [...f.pros];
+      next[index] = val;
+      return { ...f, pros: next };
+    });
+  };
+  const addPro = () => setForm((f) => ({ ...f, pros: [...f.pros, ""] }));
+  const removePro = (index: number) =>
+    setForm((f) => ({
+      ...f,
+      pros: f.pros.length > 1 ? f.pros.filter((_, i) => i !== index) : [""],
+    }));
+
+  // Cons Handlers
+  const handleConChange = (index: number, val: string) => {
+    setForm((f) => {
+      const next = [...f.cons];
+      next[index] = val;
+      return { ...f, cons: next };
+    });
+  };
+  const addCon = () => setForm((f) => ({ ...f, cons: [...f.cons, ""] }));
+  const removeCon = (index: number) =>
+    setForm((f) => ({
+      ...f,
+      cons: f.cons.length > 1 ? f.cons.filter((_, i) => i !== index) : [""],
+    }));
+
+  // Key Specs Handlers
+  const handleSpecChange = (index: number, field: "key" | "value", val: string) => {
+    setForm((f) => {
+      const next = [...f.keySpecs];
+      next[index] = { ...next[index], [field]: val };
+      return { ...f, keySpecs: next };
+    });
+  };
+  const addSpec = () => setForm((f) => ({ ...f, keySpecs: [...f.keySpecs, { key: "", value: "" }] }));
+  const removeSpec = (index: number) =>
+    setForm((f) => ({
+      ...f,
+      keySpecs: f.keySpecs.length > 1 ? f.keySpecs.filter((_, i) => i !== index) : [{ key: "", value: "" }],
+    }));
+
   const parseLines = (raw: string): string[] =>
     raw
       .split(/\r?\n/)
@@ -142,33 +190,48 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
       });
   };
 
+  const isYouTubeValid = isValidYouTubeUrl(form.youtubeUrl);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+
+    if (!isValidYouTubeUrl(form.youtubeUrl)) {
+      onError("Please enter a valid YouTube URL (youtube.com or youtu.be)");
+      return;
+    }
+
     setSubmitting(true);
 
-    const strengthsList = parseLines(form.strengthsRaw);
-    const tradeOffsList = parseLines(form.tradeOffsRaw);
+    const strengthsList = form.pros.map((p) => p.trim()).filter(Boolean);
+    const tradeOffsList = form.cons.map((c) => c.trim()).filter(Boolean);
     const finalTakeText = form.finalTake.trim();
+    const serializedKeySpecs = form.keySpecs
+      .filter((s) => s.key.trim() || s.value.trim())
+      .map((s) => (s.value.trim() ? `${s.key.trim()}: ${s.value.trim()}` : s.key.trim()));
 
     const payload: NewDbProduct = {
       // Basic Info
       title: form.title.trim(),
       slug: form.slug.trim() || undefined,
-      category: form.category.trim() || "Tech",
+      category: form.category.trim() || "Travel",
       badge: form.badge.trim() || undefined,
       description: form.description.trim(),
       image_url: form.imageUrl.trim(),
-      video_url: form.videoUrl.trim() || undefined,
+      youtube_url: form.youtubeUrl.trim() || undefined,
+      video_url: form.youtubeUrl.trim() || undefined,
       retailer_url: (form.retailerUrl || form.amazonUrl).trim(),
       retailer_domain: extractRetailerDomain(form.retailerUrl || form.amazonUrl),
       amazon_url: (form.retailerUrl || form.amazonUrl).trim(),
       is_out_of_stock: form.isOutOfStock,
 
       // Decision Information
-      quick_take: form.quickTake.trim() || form.description.trim() || undefined,
-      key_specs: parseLines(form.keySpecsRaw),
+      quick_take: form.quickTake.trim() || undefined,
+      key_specs: serializedKeySpecs,
       strengths: strengthsList,
       trade_offs: tradeOffsList,
+      pros: strengthsList,
+      cons: tradeOffsList,
       good_for: parseLines(form.goodForRaw),
       skip_if: parseLines(form.skipIfRaw),
       what_to_check: parseLines(form.whatToCheckRaw),
@@ -188,17 +251,22 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
       last_reviewed_at: form.lastReviewedAt ? new Date(form.lastReviewedAt).toISOString() : null,
     };
 
-    const res = await postProduct(payload);
-    setSubmitting(false);
+    try {
+      const res = await postProduct(payload);
+      setSubmitting(false);
 
-    if (!res.success) {
-      onError(res.error || "Failed to add product to database.");
-      return;
+      if (!res.success) {
+        onError(res.error || "Failed to add product to database.");
+        return;
+      }
+
+      onSuccess(`"${form.title}" added to database!`);
+      setForm(emptyForm);
+      onInserted(res.data);
+    } catch (err: any) {
+      setSubmitting(false);
+      onError(err?.message || "An unexpected error occurred while adding product.");
     }
-
-    onSuccess(`"${form.title}" added to database!`);
-    setForm(emptyForm);
-    onInserted(res.data);
   };
 
   return (
@@ -250,7 +318,7 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
               <input
                 required
                 list="category-suggestions"
-                placeholder="Tech, Audio, Productivity..."
+                placeholder="Travel, Beauty & Personal Care, Electronics & Tech Accessories..."
                 value={form.category}
                 onChange={update("category")}
                 className={inputClasses}
@@ -278,7 +346,7 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
             </Field>
           </div>
 
-          <Field label="Short Product Excerpt / Description" hint="1-2 sentences summarizing the product">
+          <Field label="Description" hint="Required short summary of the product">
             <textarea
               required
               rows={2}
@@ -290,11 +358,11 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
           </Field>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field label="Image URL" hint="Direct HTTPS image link">
+            <Field label="Image URL" hint="Required direct HTTPS image link">
               <input
                 required
                 type="url"
-                placeholder="https://images.unsplash.com/... or Amazon image link"
+                placeholder="https://images.unsplash.com/... or retailer image link"
                 value={form.imageUrl}
                 onChange={update("imageUrl")}
                 className={inputClasses}
@@ -303,7 +371,7 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
 
             <Field
               label="Retailer URL"
-              hint={`Direct retailer link (Domain: ${extractRetailerDomain(form.retailerUrl || form.amazonUrl)})`}
+              hint={`Required retailer link (Domain: ${extractRetailerDomain(form.retailerUrl || form.amazonUrl)})`}
             >
               <input
                 required
@@ -319,18 +387,28 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
             </Field>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 items-center">
-            <Field label="Video Embed URL (Optional)" hint="YouTube embed link">
-              <input
-                type="url"
-                placeholder="https://www.youtube.com/embed/..."
-                value={form.videoUrl}
-                onChange={update("videoUrl")}
-                className={inputClasses}
-              />
-            </Field>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 items-start">
+            <div>
+              <Field
+                label="YouTube Video URL (optional)"
+                hint="Add a YouTube product review, demo, or buying guide."
+              >
+                <input
+                  type="url"
+                  placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                  value={form.youtubeUrl}
+                  onChange={update("youtubeUrl")}
+                  className={`${inputClasses} ${!isYouTubeValid ? "border-red-500 focus:border-red-600" : ""}`}
+                />
+              </Field>
+              {!isYouTubeValid && (
+                <p className="mt-1 font-mono text-[11px] text-red-600 font-bold">
+                  Please enter a valid YouTube URL (youtube.com or youtu.be)
+                </p>
+              )}
+            </div>
 
-            <label className="flex items-center gap-3 border-2 border-line bg-panel p-4 cursor-pointer mt-4 sm:mt-0">
+            <label className="flex items-center gap-3 border-2 border-line bg-panel p-4 cursor-pointer mt-0">
               <input
                 type="checkbox"
                 checked={form.isOutOfStock}
@@ -350,15 +428,16 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
         </section>
 
         {/* SECTION 2: DECISION INFORMATION */}
-        <section className="space-y-5">
+        <section className="space-y-6">
           <div className="border-b border-line/20 pb-2">
             <span className="font-mono text-xs uppercase tracking-widest font-bold text-accent">
               2. Decision Information
             </span>
           </div>
 
-          <Field label="Quick Take" hint="20-30 word upfront summary for skimmers">
+          <Field label="Quick Take" hint="Required 20-30 word upfront summary for skimmers">
             <textarea
+              required
               rows={2}
               placeholder="The undisputed active noise cancellation benchmark for frequent travelers and commuters who prioritize sound isolation over compact folding."
               value={form.quickTake}
@@ -367,26 +446,142 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
             />
           </Field>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field label="Strengths (Why to Buy)" hint="One per line">
-              <textarea
-                rows={3}
-                placeholder="Superb active noise cancellation&#10;30-hour battery life with fast charge&#10;Extremely comfortable ear cushions"
-                value={form.strengthsRaw}
-                onChange={update("strengthsRaw")}
-                className={inputClasses}
-              />
-            </Field>
+          {/* Repeatable Pros & Cons */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            {/* Repeatable Pros */}
+            <div className="border border-line/20 bg-panel/30 p-4 rounded-none">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <span className="font-mono text-xs uppercase tracking-widest font-bold text-ink block">
+                    Pros (repeatable list)
+                  </span>
+                  <span className="font-mono text-[10px] text-muted">
+                    Key advantages & reasons to buy
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={addPro}
+                  className="border-2 border-line bg-paper px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-accent hover:bg-ink hover:text-paper transition-colors"
+                >
+                  + Add Pro
+                </button>
+              </div>
+              <div className="space-y-2">
+                {form.pros.map((pro, idx) => (
+                  <div key={idx} className="flex gap-2 items-center">
+                    <input
+                      placeholder={`Pro #${idx + 1} (e.g. Superb active noise cancellation)`}
+                      value={pro}
+                      onChange={(e) => handleProChange(idx, e.target.value)}
+                      className={inputClasses}
+                    />
+                    {form.pros.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removePro(idx)}
+                        className="h-10 w-10 shrink-0 border-2 border-line bg-paper text-muted hover:text-red-600 hover:bg-panel font-bold transition-colors"
+                        title="Remove pro"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
 
-            <Field label="Trade-offs (What to Consider)" hint="One per line">
-              <textarea
-                rows={3}
-                placeholder="Does not fold into a compact form factor&#10;Multipoint Bluetooth switches can occasionally hesitate&#10;Premium pricing tier"
-                value={form.tradeOffsRaw}
-                onChange={update("tradeOffsRaw")}
-                className={inputClasses}
-              />
-            </Field>
+            {/* Repeatable Cons */}
+            <div className="border border-line/20 bg-panel/30 p-4 rounded-none">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <span className="font-mono text-xs uppercase tracking-widest font-bold text-ink block">
+                    Cons (repeatable list)
+                  </span>
+                  <span className="font-mono text-[10px] text-muted">
+                    Trade-offs & points to consider
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={addCon}
+                  className="border-2 border-line bg-paper px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-accent hover:bg-ink hover:text-paper transition-colors"
+                >
+                  + Add Con
+                </button>
+              </div>
+              <div className="space-y-2">
+                {form.cons.map((con, idx) => (
+                  <div key={idx} className="flex gap-2 items-center">
+                    <input
+                      placeholder={`Con #${idx + 1} (e.g. Does not fold into a compact case)`}
+                      value={con}
+                      onChange={(e) => handleConChange(idx, e.target.value)}
+                      className={inputClasses}
+                    />
+                    {form.cons.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeCon(idx)}
+                        className="h-10 w-10 shrink-0 border-2 border-line bg-paper text-muted hover:text-red-600 hover:bg-panel font-bold transition-colors"
+                        title="Remove con"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Repeatable Key Specs (Key / Value Rows) */}
+          <div className="border border-line/20 bg-panel/30 p-4 rounded-none">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <span className="font-mono text-xs uppercase tracking-widest font-bold text-ink block">
+                  Key Specs (repeatable key/value rows)
+                </span>
+                <span className="font-mono text-[10px] text-muted">
+                  Add technical or physical attributes (e.g. Battery Life: 30 hours)
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={addSpec}
+                className="border-2 border-line bg-paper px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-accent hover:bg-ink hover:text-paper transition-colors"
+              >
+                + Add Spec Row
+              </button>
+            </div>
+            <div className="space-y-2">
+              {form.keySpecs.map((spec, idx) => (
+                <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                  <input
+                    placeholder="Spec Name (e.g. Battery Life)"
+                    value={spec.key}
+                    onChange={(e) => handleSpecChange(idx, "key", e.target.value)}
+                    className={inputClasses}
+                  />
+                  <input
+                    placeholder="Value (e.g. 30 Hours)"
+                    value={spec.value}
+                    onChange={(e) => handleSpecChange(idx, "value", e.target.value)}
+                    className={inputClasses}
+                  />
+                  {form.keySpecs.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeSpec(idx)}
+                      className="h-10 w-10 shrink-0 border-2 border-line bg-paper text-muted hover:text-red-600 hover:bg-panel font-bold transition-colors"
+                      title="Remove spec"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
@@ -421,42 +616,30 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
             </Field>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field label="Key Specifications" hint="Key specs one per line (e.g. Battery: 30h)">
-              <textarea
-                rows={3}
-                placeholder="Battery Life: 30 hours&#10;Weight: 250g&#10;Driver Size: 30mm Carbon Fiber&#10;Bluetooth: 5.2 LDAC / AAC / SBC"
-                value={form.keySpecsRaw}
-                onChange={update("keySpecsRaw")}
-                className={inputClasses}
-              />
-            </Field>
-
-            <Field label="Final Take / Target Profile" hint="Clear bottom-line conclusion">
-              <textarea
-                rows={3}
-                placeholder="Best for audiophiles and commuters seeking maximum acoustic isolation who don't mind the non-folding carry case."
-                value={form.finalTake}
-                onChange={update("finalTake")}
-                className={inputClasses}
-              />
-            </Field>
-          </div>
+          <Field label="Final Take / Target Profile" hint="Clear bottom-line conclusion">
+            <textarea
+              rows={2}
+              placeholder="Best for audiophiles and commuters seeking maximum acoustic isolation who don't mind the non-folding carry case."
+              value={form.finalTake}
+              onChange={update("finalTake")}
+              className={inputClasses}
+            />
+          </Field>
         </section>
 
         {/* SECTION 3: ANTI-REGRET MATRIX (QUALITATIVE) */}
         <section className="space-y-5">
           <div className="border-b border-line/20 pb-2">
             <span className="font-mono text-xs uppercase tracking-widest font-bold text-accent">
-              3. Anti-Regret Matrix (Qualitative Assessment Only)
+              3. Anti-Regret Qualitative Matrix (No Numeric Scores)
             </span>
             <p className="font-mono text-[11px] text-muted mt-1">
-              Select qualitative evaluation for each dimension. Do NOT assign numerical scores. Leave unassessed if not researched yet.
+              Select qualitative evaluation tiers based on research. Leave unassessed if not verified.
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Field label="Performance" hint="Speed, output, efficacy">
+            <Field label="Performance / Reliability">
               <select
                 value={form.matrixPerformance}
                 onChange={update("matrixPerformance")}
@@ -470,7 +653,7 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
               </select>
             </Field>
 
-            <Field label="Value for Money" hint="Price vs capability balance">
+            <Field label="Value for Money">
               <select
                 value={form.matrixValue}
                 onChange={update("matrixValue")}
@@ -484,7 +667,7 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
               </select>
             </Field>
 
-            <Field label="Ease of Use" hint="Setup, UI, ergonomics">
+            <Field label="Ease of Use">
               <select
                 value={form.matrixEaseOfUse}
                 onChange={update("matrixEaseOfUse")}
@@ -498,7 +681,7 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
               </select>
             </Field>
 
-            <Field label="Portability" hint="Weight, bulk, travel ease">
+            <Field label="Portability / Footprint">
               <select
                 value={form.matrixPortability}
                 onChange={update("matrixPortability")}
@@ -512,7 +695,7 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
               </select>
             </Field>
 
-            <Field label="Compatibility" hint="Ecosystem & standards fit">
+            <Field label="Compatibility / Ecosystem">
               <select
                 value={form.matrixCompatibility}
                 onChange={update("matrixCompatibility")}
@@ -526,7 +709,7 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
               </select>
             </Field>
 
-            <Field label="Long-Term Suitability" hint="Durability, support, obsolescence">
+            <Field label="Long-term Durability">
               <select
                 value={form.matrixLongTermSuitability}
                 onChange={update("matrixLongTermSuitability")}
@@ -585,10 +768,10 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
           </div>
         </section>
 
-        {/* Submit button */}
+        {/* Submit button with duplicate submission prevention */}
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || !isYouTubeValid}
           className="mt-2 border-2 border-line bg-accent px-6 py-4 font-mono text-sm font-bold uppercase tracking-widest2 text-ink shadow-hard-sm transition-all hover:-translate-y-0.5 hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? "Publishing via Server Action…" : "🚀 Publish Product to Storefront"}

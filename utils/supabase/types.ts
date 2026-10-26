@@ -15,6 +15,7 @@ export type DbProduct = {
   description: string;
   image_url: string;
   video_url?: string;
+  youtube_url?: string | null;
   retailer_url: string;
   retailer_domain?: string;
   amazon_url?: string; // Backward-compatible alias for retailer_url

@@ -7,6 +7,7 @@ export type PriorityTag = "x" | "y";
 
 export type Product = DbProduct & {
   imageUrl?: string;
+  youtubeUrl?: string | null;
   retailerUrl?: string;
   retailerDomain?: string;
   amazonUrl?: string;

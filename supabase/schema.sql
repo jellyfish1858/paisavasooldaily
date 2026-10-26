@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   badge text DEFAULT '',
   image_url text NOT NULL DEFAULT '',
   video_url text DEFAULT '',
+  youtube_url text,
   retailer_url text NOT NULL DEFAULT '',
   retailer_domain text DEFAULT 'unknown',
 
@@ -66,6 +67,7 @@ ALTER TABLE public.products ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFA
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS is_out_of_stock boolean DEFAULT false;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS retailer_url text DEFAULT '';
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS retailer_domain text DEFAULT 'unknown';
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS youtube_url text;
 
 -- Drop obsolete rating and scoring columns if they still exist
 ALTER TABLE public.products DROP COLUMN IF EXISTS rating;

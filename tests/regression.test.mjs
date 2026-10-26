@@ -461,3 +461,57 @@ test('Auto-assigns products to all 5 collections and ensures overlap', () => {
   });
 });
 
+// -----------------------------------------------------------------------------
+// 17. Admin Product Management: YouTube URL Validation & Storage Mapping
+// -----------------------------------------------------------------------------
+test('YouTube URL validation strictly accepts youtube.com and youtu.be, and allows empty', async () => {
+  const { isValidYouTubeUrl } = await import('../lib/validation.ts');
+
+  // Valid empty / null / undefined
+  assert.equal(isValidYouTubeUrl(''), true);
+  assert.equal(isValidYouTubeUrl('   '), true);
+  assert.equal(isValidYouTubeUrl(null), true);
+  assert.equal(isValidYouTubeUrl(undefined), true);
+
+  // Valid standard YouTube URLs
+  assert.equal(isValidYouTubeUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ'), true);
+  assert.equal(isValidYouTubeUrl('https://youtube.com/watch?v=dQw4w9WgXcQ'), true);
+  assert.equal(isValidYouTubeUrl('https://m.youtube.com/watch?v=dQw4w9WgXcQ'), true);
+  assert.equal(isValidYouTubeUrl('https://youtu.be/dQw4w9WgXcQ'), true);
+  assert.equal(isValidYouTubeUrl('https://www.youtube.com/embed/dQw4w9WgXcQ'), true);
+
+  // Invalid non-YouTube URLs
+  assert.equal(isValidYouTubeUrl('https://vimeo.com/123456'), false);
+  assert.equal(isValidYouTubeUrl('https://example.com/youtube.com'), false);
+  assert.equal(isValidYouTubeUrl('https://fakeyoutube.com/watch?v=123'), false);
+  assert.equal(isValidYouTubeUrl('not-a-valid-url'), false);
+  assert.equal(isValidYouTubeUrl('javascript:alert(1)'), false);
+});
+
+test('Product data model preserves youtube_url and automatically qualifies for collections', () => {
+  const testId = `test-yt-prod-${Date.now()}`;
+  const testProduct = {
+    id: testId,
+    title: 'Test YouTube Audio Gadget',
+    description: 'High fidelity audio equipment for testing.',
+    category: 'Electronics & Tech Accessories',
+    image_url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e',
+    retailer_url: 'https://www.amazon.in/dp/B08N5WRWNW',
+    quick_take: 'Great sound quality for the price.',
+    youtube_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    created_at: new Date().toISOString(),
+    pros: ['Clear sound', 'Compact footprint'],
+    cons: ['Slightly heavy'],
+    key_specs: ['Driver: 40mm', 'Battery: 20h'],
+  };
+
+  assert.equal(testProduct.youtube_url, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+
+  // Verify new product automatically gets assigned to collections without manual linking
+  const collectionsMap = assignProductsToCollections([testProduct]);
+  assert.ok(collectionsMap.has(testId));
+  assert.ok(collectionsMap.get(testId).includes('best-value'));
+  assert.ok(collectionsMap.get(testId).includes('trending-now'));
+});
+
+

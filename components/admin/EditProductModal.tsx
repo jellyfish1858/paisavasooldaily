@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { updateProductAction } from "@/app/secure-admin-panel/actions";
 import type { DbProduct, QualitativeRating, ResearchSource } from "@/utils/supabase/types";
 import { extractRetailerDomain } from "@/config/affiliate";
+import { isValidYouTubeUrl } from "@/lib/validation";
 
 interface EditProductModalProps {
   product: DbProduct;
@@ -55,7 +56,7 @@ export default function EditProductModal({
   const [category, setCategory] = useState(product.category || "Travel");
   const [badge, setBadge] = useState(stripProductMeta(product.badge) || "");
   const [imageUrl, setImageUrl] = useState(product.image_url || "");
-  const [videoUrl, setVideoUrl] = useState(product.video_url || "");
+  const [youtubeUrl, setYoutubeUrl] = useState(product.youtube_url || product.video_url || "");
   const [retailerUrl, setRetailerUrl] = useState(product.retailer_url || product.amazon_url || "");
   const [description, setDescription] = useState(stripProductMeta(product.description) || "");
   const [isOutOfStock, setIsOutOfStock] = useState(Boolean(product.is_out_of_stock));
@@ -65,13 +66,54 @@ export default function EditProductModal({
   const [finalTake, setFinalTake] = useState(
     stripProductMeta(product.final_take || product.verdict) || ""
   );
-  const [keySpecsRaw, setKeySpecsRaw] = useState(() => toMultilineText(product.key_specs));
-  const [strengthsRaw, setStrengthsRaw] = useState(() =>
-    toMultilineText((product.strengths || product.reasons_to_buy || product.pros || []).map((s: any) => stripProductMeta(String(s))))
-  );
-  const [tradeOffsRaw, setTradeOffsRaw] = useState(() =>
-    toMultilineText((product.trade_offs || product.reasons_not_to_buy || product.cons || []).map((t: any) => stripProductMeta(String(t))))
-  );
+
+  // Repeatable Pros
+  const [pros, setPros] = useState<string[]>(() => {
+    const list = product.pros || product.strengths || product.reasons_to_buy;
+    if (Array.isArray(list) && list.length > 0) {
+      const cleaned = list.map((s: any) => stripProductMeta(String(s))).filter(Boolean);
+      return cleaned.length > 0 ? cleaned : [""];
+    }
+    return [""];
+  });
+
+  // Repeatable Cons
+  const [cons, setCons] = useState<string[]>(() => {
+    const list = product.cons || product.trade_offs || product.reasons_not_to_buy;
+    if (Array.isArray(list) && list.length > 0) {
+      const cleaned = list.map((t: any) => stripProductMeta(String(t))).filter(Boolean);
+      return cleaned.length > 0 ? cleaned : [""];
+    }
+    return [""];
+  });
+
+  // Repeatable Key Specs
+  const [keySpecs, setKeySpecs] = useState<Array<{ key: string; value: string }>>(() => {
+    if (Array.isArray(product.key_specs) && product.key_specs.length > 0) {
+      return product.key_specs.map((item: any) => {
+        if (typeof item === "string") {
+          const colonIdx = item.indexOf(":");
+          if (colonIdx > 0) {
+            return { key: item.slice(0, colonIdx).trim(), value: item.slice(colonIdx + 1).trim() };
+          }
+          return { key: item.trim(), value: "" };
+        }
+        if (item && typeof item === "object") {
+          const entries = Object.entries(item);
+          if (entries.length > 0) return { key: String(entries[0][0]), value: String(entries[0][1]) };
+        }
+        return { key: String(item), value: "" };
+      });
+    }
+    if (product.key_specs && typeof product.key_specs === "object") {
+      const entries = Object.entries(product.key_specs);
+      if (entries.length > 0) {
+        return entries.map(([k, v]) => ({ key: String(k), value: String(v) }));
+      }
+    }
+    return [{ key: "", value: "" }];
+  });
+
   const [goodForRaw, setGoodForRaw] = useState(() => toMultilineText((Array.isArray(product.good_for) ? product.good_for : []).map((g: any) => stripProductMeta(String(g)))));
   const [skipIfRaw, setSkipIfRaw] = useState(() => toMultilineText((Array.isArray(product.skip_if) ? product.skip_if : []).map((s: any) => stripProductMeta(String(s)))));
   const [whatToCheckRaw, setWhatToCheckRaw] = useState(() => toMultilineText((Array.isArray(product.what_to_check) ? product.what_to_check : []).map((w: any) => stripProductMeta(String(w)))));
@@ -111,6 +153,42 @@ export default function EditProductModal({
 
   const [saving, setSaving] = useState(false);
 
+  // Pros Handlers
+  const handleProChange = (index: number, val: string) => {
+    setPros((prev) => {
+      const next = [...prev];
+      next[index] = val;
+      return next;
+    });
+  };
+  const addPro = () => setPros((prev) => [...prev, ""]);
+  const removePro = (index: number) =>
+    setPros((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : [""]));
+
+  // Cons Handlers
+  const handleConChange = (index: number, val: string) => {
+    setCons((prev) => {
+      const next = [...prev];
+      next[index] = val;
+      return next;
+    });
+  };
+  const addCon = () => setCons((prev) => [...prev, ""]);
+  const removeCon = (index: number) =>
+    setCons((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : [""]));
+
+  // Key Specs Handlers
+  const handleSpecChange = (index: number, field: "key" | "value", val: string) => {
+    setKeySpecs((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: val };
+      return next;
+    });
+  };
+  const addSpec = () => setKeySpecs((prev) => [...prev, { key: "", value: "" }]);
+  const removeSpec = (index: number) =>
+    setKeySpecs((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : [{ key: "", value: "" }]));
+
   const parseLines = (raw: string): string[] =>
     raw
       .split(/\r?\n/)
@@ -134,13 +212,25 @@ export default function EditProductModal({
       });
   };
 
+  const isYouTubeValid = isValidYouTubeUrl(youtubeUrl);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (saving) return;
+
+    if (!isValidYouTubeUrl(youtubeUrl)) {
+      onError("Please enter a valid YouTube URL (youtube.com or youtu.be)");
+      return;
+    }
+
     setSaving(true);
 
-    const strengthsList = parseLines(strengthsRaw);
-    const tradeOffsList = parseLines(tradeOffsRaw);
+    const strengthsList = pros.map((p) => p.trim()).filter(Boolean);
+    const tradeOffsList = cons.map((c) => c.trim()).filter(Boolean);
     const finalTakeText = finalTake.trim();
+    const serializedKeySpecs = keySpecs
+      .filter((s) => s.key.trim() || s.value.trim())
+      .map((s) => (s.value.trim() ? `${s.key.trim()}: ${s.value.trim()}` : s.key.trim()));
 
     const payload: Partial<DbProduct> = {
       title: title.trim(),
@@ -149,16 +239,19 @@ export default function EditProductModal({
       badge: badge.trim() || undefined,
       description: description.trim(),
       image_url: imageUrl.trim(),
-      video_url: videoUrl.trim() || undefined,
+      youtube_url: youtubeUrl.trim() || undefined,
+      video_url: youtubeUrl.trim() || undefined,
       retailer_url: retailerUrl.trim(),
       retailer_domain: extractRetailerDomain(retailerUrl),
       amazon_url: retailerUrl.trim(),
       is_out_of_stock: isOutOfStock,
 
       quick_take: quickTake.trim() || undefined,
-      key_specs: parseLines(keySpecsRaw),
+      key_specs: serializedKeySpecs,
       strengths: strengthsList,
       trade_offs: tradeOffsList,
+      pros: strengthsList,
+      cons: tradeOffsList,
       good_for: parseLines(goodForRaw),
       skip_if: parseLines(skipIfRaw),
       what_to_check: parseLines(whatToCheckRaw),
@@ -176,16 +269,21 @@ export default function EditProductModal({
       last_reviewed_at: lastReviewedAt ? new Date(lastReviewedAt).toISOString() : null,
     };
 
-    const res = await updateProductAction(product.id, payload);
-    setSaving(false);
+    try {
+      const res = await updateProductAction(product.id, payload);
+      setSaving(false);
 
-    if (!res.success) {
-      onError(res.error || "Failed to update product.");
-      return;
+      if (!res.success) {
+        onError(res.error || "Failed to update product.");
+        return;
+      }
+
+      onUpdated(res.data as DbProduct);
+      onClose();
+    } catch (err: any) {
+      setSaving(false);
+      onError(err?.message || "An unexpected error occurred while updating product.");
     }
-
-    onUpdated(res.data as DbProduct);
-    onClose();
   };
 
   return (
@@ -225,7 +323,7 @@ export default function EditProductModal({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  Product Title
+                  Product Title (Required)
                 </label>
                 <input
                   required
@@ -250,7 +348,7 @@ export default function EditProductModal({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
                 <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  Category
+                  Category (Required)
                 </label>
                 <input
                   required
@@ -295,7 +393,7 @@ export default function EditProductModal({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  Image URL
+                  Image URL (Required)
                 </label>
                 <input
                   required
@@ -308,7 +406,7 @@ export default function EditProductModal({
 
               <div>
                 <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  Retailer URL {retailerUrl ? `(Domain: ${extractRetailerDomain(retailerUrl)})` : ""}
+                  Retailer URL {retailerUrl ? `(Domain: ${extractRetailerDomain(retailerUrl)})` : ""} (Required)
                 </label>
                 <input
                   required
@@ -321,22 +419,31 @@ export default function EditProductModal({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 items-start">
               <div>
                 <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  Video Embed URL (Optional)
+                  YouTube Video URL (optional)
                 </label>
+                <span className="font-mono text-[10px] text-muted block mb-1">
+                  Add a YouTube product review, demo, or buying guide.
+                </span>
                 <input
                   type="url"
-                  value={videoUrl}
-                  onChange={(e) => setVideoUrl(e.target.value)}
-                  className={inputClasses}
+                  placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  className={`${inputClasses} ${!isYouTubeValid ? "border-red-500 focus:border-red-600" : ""}`}
                 />
+                {!isYouTubeValid && (
+                  <p className="mt-1 font-mono text-[11px] text-red-600 font-bold">
+                    Please enter a valid YouTube URL (youtube.com or youtu.be)
+                  </p>
+                )}
               </div>
 
               <div>
                 <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  Short Description / Excerpt
+                  Description (Required)
                 </label>
                 <textarea
                   rows={2}
@@ -357,46 +464,142 @@ export default function EditProductModal({
 
             <div>
               <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                Quick Take (20-30 word upfront summary)
+                Quick Take (Required upfront summary)
               </label>
               <textarea
                 rows={2}
+                required
                 value={quickTake}
                 onChange={(e) => setQuickTake(e.target.value)}
                 className={inputClasses}
               />
             </div>
 
+            {/* Repeatable Pros & Cons */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  Strengths (One per line)
-                </label>
-                <textarea
-                  rows={3}
-                  value={strengthsRaw}
-                  onChange={(e) => setStrengthsRaw(e.target.value)}
-                  className={inputClasses}
-                />
+              <div className="border border-line/20 bg-panel/30 p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="font-mono text-[11px] uppercase tracking-widest font-bold text-ink">
+                    Pros (repeatable list)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={addPro}
+                    className="border border-line bg-paper px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-accent hover:bg-ink hover:text-paper transition-colors"
+                  >
+                    + Add Pro
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {pros.map((pro, idx) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <input
+                        placeholder={`Pro #${idx + 1}`}
+                        value={pro}
+                        onChange={(e) => handleProChange(idx, e.target.value)}
+                        className={inputClasses}
+                      />
+                      {pros.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removePro(idx)}
+                          className="h-9 w-9 shrink-0 border border-line bg-paper text-muted hover:text-red-600 font-bold transition-colors"
+                          title="Remove pro"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div>
-                <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  Trade-offs (One per line)
-                </label>
-                <textarea
-                  rows={3}
-                  value={tradeOffsRaw}
-                  onChange={(e) => setTradeOffsRaw(e.target.value)}
-                  className={inputClasses}
-                />
+              <div className="border border-line/20 bg-panel/30 p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="font-mono text-[11px] uppercase tracking-widest font-bold text-ink">
+                    Cons (repeatable list)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={addCon}
+                    className="border border-line bg-paper px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-accent hover:bg-ink hover:text-paper transition-colors"
+                  >
+                    + Add Con
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {cons.map((con, idx) => (
+                    <div key={idx} className="flex gap-2 items-center">
+                      <input
+                        placeholder={`Con #${idx + 1}`}
+                        value={con}
+                        onChange={(e) => handleConChange(idx, e.target.value)}
+                        className={inputClasses}
+                      />
+                      {cons.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeCon(idx)}
+                          className="h-9 w-9 shrink-0 border border-line bg-paper text-muted hover:text-red-600 font-bold transition-colors"
+                          title="Remove con"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Repeatable Key Specs */}
+            <div className="border border-line/20 bg-panel/30 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="font-mono text-[11px] uppercase tracking-widest font-bold text-ink">
+                  Key Specs (repeatable key/value rows)
+                </span>
+                <button
+                  type="button"
+                  onClick={addSpec}
+                  className="border border-line bg-paper px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-accent hover:bg-ink hover:text-paper transition-colors"
+                >
+                  + Add Spec Row
+                </button>
+              </div>
+              <div className="space-y-2">
+                {keySpecs.map((spec, idx) => (
+                  <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                    <input
+                      placeholder="Spec Name"
+                      value={spec.key}
+                      onChange={(e) => handleSpecChange(idx, "key", e.target.value)}
+                      className={inputClasses}
+                    />
+                    <input
+                      placeholder="Value"
+                      value={spec.value}
+                      onChange={(e) => handleSpecChange(idx, "value", e.target.value)}
+                      className={inputClasses}
+                    />
+                    {keySpecs.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeSpec(idx)}
+                        className="h-9 w-9 shrink-0 border border-line bg-paper text-muted hover:text-red-600 font-bold transition-colors"
+                        title="Remove spec"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
                 <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  Good For (One per line)
+                  Good For (one per line)
                 </label>
                 <textarea
                   rows={3}
@@ -408,7 +611,7 @@ export default function EditProductModal({
 
               <div>
                 <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  Skip If (One per line)
+                  Skip If (one per line)
                 </label>
                 <textarea
                   rows={3}
@@ -420,7 +623,7 @@ export default function EditProductModal({
 
               <div>
                 <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  What to Check (One per line)
+                  What to Check (one per line)
                 </label>
                 <textarea
                   rows={3}
@@ -431,42 +634,30 @@ export default function EditProductModal({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  Key Specifications (One per line)
-                </label>
-                <textarea
-                  rows={3}
-                  value={keySpecsRaw}
-                  onChange={(e) => setKeySpecsRaw(e.target.value)}
-                  className={inputClasses}
-                />
-              </div>
-
-              <div>
-                <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  Final Take / Target Profile
-                </label>
-                <textarea
-                  rows={3}
-                  value={finalTake}
-                  onChange={(e) => setFinalTake(e.target.value)}
-                  className={inputClasses}
-                />
-              </div>
+            <div>
+              <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
+                Final Take / Target Profile
+              </label>
+              <textarea
+                rows={2}
+                value={finalTake}
+                onChange={(e) => setFinalTake(e.target.value)}
+                className={inputClasses}
+              />
             </div>
           </div>
 
-          {/* SECTION 3: ANTI-REGRET MATRIX (QUALITATIVE) */}
+          {/* SECTION 3: ANTI-REGRET MATRIX */}
           <div className="space-y-4">
             <span className="font-mono text-xs uppercase tracking-widest font-bold text-accent block border-b border-line/20 pb-1">
-              3. Anti-Regret Matrix (Qualitative Assessment Only)
+              3. Qualitative Anti-Regret Matrix
             </span>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div>
-                <label className="block font-mono text-[10px] uppercase font-bold mb-1">Performance</label>
+                <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
+                  Performance
+                </label>
                 <select
                   value={matrixPerformance}
                   onChange={(e) => setMatrixPerformance(e.target.value as any)}
@@ -481,7 +672,9 @@ export default function EditProductModal({
               </div>
 
               <div>
-                <label className="block font-mono text-[10px] uppercase font-bold mb-1">Value for Money</label>
+                <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
+                  Value for Money
+                </label>
                 <select
                   value={matrixValue}
                   onChange={(e) => setMatrixValue(e.target.value as any)}
@@ -496,7 +689,9 @@ export default function EditProductModal({
               </div>
 
               <div>
-                <label className="block font-mono text-[10px] uppercase font-bold mb-1">Ease of Use</label>
+                <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
+                  Ease of Use
+                </label>
                 <select
                   value={matrixEaseOfUse}
                   onChange={(e) => setMatrixEaseOfUse(e.target.value as any)}
@@ -511,7 +706,9 @@ export default function EditProductModal({
               </div>
 
               <div>
-                <label className="block font-mono text-[10px] uppercase font-bold mb-1">Portability</label>
+                <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
+                  Portability
+                </label>
                 <select
                   value={matrixPortability}
                   onChange={(e) => setMatrixPortability(e.target.value as any)}
@@ -526,7 +723,9 @@ export default function EditProductModal({
               </div>
 
               <div>
-                <label className="block font-mono text-[10px] uppercase font-bold mb-1">Compatibility</label>
+                <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
+                  Compatibility
+                </label>
                 <select
                   value={matrixCompatibility}
                   onChange={(e) => setMatrixCompatibility(e.target.value as any)}
@@ -541,7 +740,9 @@ export default function EditProductModal({
               </div>
 
               <div>
-                <label className="block font-mono text-[10px] uppercase font-bold mb-1">Long-Term Suitability</label>
+                <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
+                  Long-term Durability
+                </label>
                 <select
                   value={matrixLongTermSuitability}
                   onChange={(e) => setMatrixLongTermSuitability(e.target.value as any)}
@@ -557,7 +758,7 @@ export default function EditProductModal({
             </div>
           </div>
 
-          {/* SECTION 4: RESEARCH & EDITORIAL RIGOR */}
+          {/* SECTION 4: RESEARCH */}
           <div className="space-y-4">
             <span className="font-mono text-xs uppercase tracking-widest font-bold text-accent block border-b border-line/20 pb-1">
               4. Research & Editorial Rigor
@@ -565,7 +766,7 @@ export default function EditProductModal({
 
             <div>
               <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                Research Basis
+                Research Methodology Basis
               </label>
               <textarea
                 rows={2}
@@ -578,7 +779,7 @@ export default function EditProductModal({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block font-mono text-[11px] uppercase tracking-widest font-bold mb-1">
-                  Research Sources (Source | URL, one per line)
+                  Sources (Name | URL per line)
                 </label>
                 <textarea
                   rows={3}
@@ -602,19 +803,20 @@ export default function EditProductModal({
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t-2 border-line">
+          {/* Actions with duplicate submission prevention */}
+          <div className="flex items-center justify-end gap-3 border-t-2 border-line bg-panel p-4 sticky bottom-0">
             <button
               type="button"
               onClick={onClose}
-              className="border-2 border-line bg-paper px-5 py-3 font-mono text-xs uppercase tracking-widest font-bold hover:bg-panel"
+              disabled={saving}
+              className="border-2 border-line bg-paper px-4 py-2 font-mono text-xs uppercase tracking-widest font-bold text-muted hover:text-ink transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={saving}
-              className="border-2 border-line bg-accent px-6 py-3 font-mono text-xs uppercase tracking-widest font-bold text-ink shadow-hard-sm hover:bg-ink hover:text-paper transition-all disabled:opacity-50"
+              disabled={saving || !isYouTubeValid}
+              className="border-2 border-line bg-accent px-6 py-2 font-mono text-xs uppercase tracking-widest font-bold text-ink shadow-hard-sm hover:bg-ink hover:text-paper transition-all disabled:opacity-50"
             >
               {saving ? "Saving Changes…" : "Save Changes"}
             </button>
