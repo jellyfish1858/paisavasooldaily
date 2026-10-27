@@ -894,6 +894,57 @@ test('Interactive Buying Guides: zero prohibited US-only legal and shopping even
   }
 });
 
+test('Interactive Buying Guides: zero dollar currency ($ or USD or dollar) references', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+
+  const filesToCheck = [
+    'lib/guides.ts',
+    'components/guides/AuthenticationChecklist.tsx',
+    'components/guides/DealCalendar.tsx',
+    'components/guides/DecisionTree.tsx',
+    'components/guides/InteractiveChecklist.tsx',
+    'components/guides/QuizCard.tsx',
+    'components/guides/ReturnFlowchart.tsx',
+    'components/guides/ShoppingCalendar.tsx',
+    'components/guides/SpecDecoder.tsx',
+    'components/guides/WarrantyCalculator.tsx',
+    'components/guides/WarrantySlider.tsx',
+    'app/guides/page.tsx',
+    'app/guides/[slug]/page.tsx',
+  ];
+
+  for (const relPath of filesToCheck) {
+    const fullPath = path.resolve(process.cwd(), relPath);
+    if (fs.existsSync(fullPath)) {
+      const content = fs.readFileSync(fullPath, 'utf8');
+      const lines = content.split('\n');
+      lines.forEach((line, idx) => {
+        // Match dollar sign not part of template literal ${...}
+        const dollarMatch = line.match(/\$(?!\{)/);
+        assert.equal(
+          dollarMatch,
+          null,
+          `File ${relPath}:${idx + 1} contains dollar sign: "${line.trim()}"`
+        );
+        const usdMatch = line.match(/\bUSD\b/i);
+        assert.equal(
+          usdMatch,
+          null,
+          `File ${relPath}:${idx + 1} contains USD: "${line.trim()}"`
+        );
+        const dollarWordMatch = line.match(/\bdollars?\b/i);
+        assert.equal(
+          dollarWordMatch,
+          null,
+          `File ${relPath}:${idx + 1} contains dollar word: "${line.trim()}"`
+        );
+      });
+    }
+  }
+});
+
+
 
 
 
