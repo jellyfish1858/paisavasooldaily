@@ -42,7 +42,7 @@ All content, database records, UI components, editorial text, and marketing asse
 2. **No Fabricated Trust Signals**: Never invent, generate, or display artificial social proof, fictional review counts, simulated star ratings, or manufactured purchase counts.
 3. **Information First, Monetization Second**: Every page must deliver independent educational value. A visitor who never clicks an Amazon link must still walk away with a clear understanding of the product and its trade-offs.
 4. **Transparent Methodology**: Always disclose the research basis, sources analyzed, and last reviewed/updated date for every product entry.
-5. **Clear Affiliate Disclosures**: Transparently disclose the affiliate relationship in accordance with Amazon Associates Operating Agreement and FTC guidelines.
+5. **Clear Affiliate Disclosures**: Transparently disclose the affiliate relationship in accordance with Amazon Associates Operating Agreement and applicable consumer protection and advertising guidelines.
 
 ---
 

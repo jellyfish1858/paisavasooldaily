@@ -18,7 +18,26 @@ import QuizCard from "@/components/guides/QuizCard";
 import DecisionTree from "@/components/guides/DecisionTree";
 import ShoppingCalendar from "@/components/guides/ShoppingCalendar";
 import WarrantySlider from "@/components/guides/WarrantySlider";
-import { ShieldCheck, Search, TrendingUp, Calendar, FileText, Sparkles, CheckCircle2, ArrowRight } from "lucide-react";
+import SpecDecoder from "@/components/guides/SpecDecoder";
+import AuthenticationChecklist from "@/components/guides/AuthenticationChecklist";
+import DealCalendar from "@/components/guides/DealCalendar";
+import WarrantyCalculator from "@/components/guides/WarrantyCalculator";
+import ReturnFlowchart from "@/components/guides/ReturnFlowchart";
+import {
+  ShieldCheck,
+  Search,
+  TrendingUp,
+  Calendar,
+  FileText,
+  Sparkles,
+  CheckCircle2,
+  ArrowRight,
+  Cpu,
+  ShieldAlert,
+  CalendarDays,
+  Scale,
+  Undo2,
+} from "lucide-react";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -223,6 +242,41 @@ export default async function BuyingGuideDetailPage({ params }: Props) {
               ctaCollectionName={guide.ctaCollectionName}
             />
           );
+        case 'spec-decoder':
+          return (
+            <SpecDecoder
+              ctaCollectionSlug={guide.ctaCollectionSlug}
+              ctaCollectionName={guide.ctaCollectionName}
+            />
+          );
+        case 'auth-checklist':
+          return (
+            <AuthenticationChecklist
+              ctaCollectionSlug={guide.ctaCollectionSlug}
+              ctaCollectionName={guide.ctaCollectionName}
+            />
+          );
+        case 'deal-calendar':
+          return (
+            <DealCalendar
+              ctaCollectionSlug={guide.ctaCollectionSlug}
+              ctaCollectionName={guide.ctaCollectionName}
+            />
+          );
+        case 'warranty-calc':
+          return (
+            <WarrantyCalculator
+              ctaCollectionSlug={guide.ctaCollectionSlug}
+              ctaCollectionName={guide.ctaCollectionName}
+            />
+          );
+        case 'return-flowchart':
+          return (
+            <ReturnFlowchart
+              ctaCollectionSlug={guide.ctaCollectionSlug}
+              ctaCollectionName={guide.ctaCollectionName}
+            />
+          );
         default:
           return null;
       }
@@ -240,6 +294,16 @@ export default async function BuyingGuideDetailPage({ params }: Props) {
           return <Calendar size={32} className="text-amber-400" />;
         case 'FileText':
           return <FileText size={32} className="text-cyan-400" />;
+        case 'Cpu':
+          return <Cpu size={32} className="text-blue-400" />;
+        case 'ShieldAlert':
+          return <ShieldAlert size={32} className="text-rose-400" />;
+        case 'CalendarDays':
+          return <CalendarDays size={32} className="text-amber-400" />;
+        case 'Scale':
+          return <Scale size={32} className="text-emerald-400" />;
+        case 'Undo2':
+          return <Undo2 size={32} className="text-cyan-400" />;
         default:
           return <Sparkles size={32} className="text-blue-400" />;
       }

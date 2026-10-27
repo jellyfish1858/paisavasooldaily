@@ -15,22 +15,23 @@ export default function AffiliateDisclosure({
 
   if (variant === "inline") {
     return (
-      <div className={`font-mono text-[11px] text-muted leading-relaxed space-y-1 ${className}`}>
-        <p className="text-ink font-bold">
-          <span className="text-ink">Transparency Disclosure:</span> {disclosureText}
+      <div className={`font-mono text-[11px] text-gray-400 leading-relaxed space-y-1 ${className}`}>
+        <p className="text-white font-bold">
+          <span className="text-white">Transparency Disclosure:</span> {disclosureText}
         </p>
-        <p className="text-muted text-[10px]">{pricingText}</p>
+        <p className="text-gray-400 text-[10px]">{pricingText}</p>
       </div>
     );
   }
 
   if (variant === "compact") {
     return (
-      <div className={`border border-line/20 bg-paper p-3 sm:p-4 text-center space-y-1.5 ${className}`}>
-        <p className="font-mono text-xs text-ink font-bold leading-relaxed">
-          Transparency Disclosure: {disclosureText}
+      <div className={`bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur border border-blue-500/20 rounded-lg p-4 text-center space-y-1.5 ${className}`}>
+        <h4 className="font-bold text-white text-xs">Transparency Disclosure</h4>
+        <p className="text-xs text-gray-300 leading-relaxed">
+          {disclosureText}
         </p>
-        <p className="font-mono text-[10px] text-muted leading-relaxed">
+        <p className="text-[10px] text-gray-400 leading-relaxed">
           {pricingText}
         </p>
       </div>
@@ -38,17 +39,16 @@ export default function AffiliateDisclosure({
   }
 
   return (
-    <aside
-      aria-label="Affiliate Transparency Disclosure"
-      className={`border border-line/20 bg-paper p-5 sm:p-6 text-center space-y-2.5 ${className}`}
+    <div
+      className={`bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur border border-blue-500/20 rounded-lg p-6 ${className}`}
     >
-      <p className="font-mono text-xs sm:text-sm text-ink font-bold leading-relaxed max-w-2xl mx-auto">
-        <span className="font-semibold text-ink">Transparency Disclosure:</span>{" "}
+      <h3 className="font-bold text-white mb-2">Transparency Disclosure</h3>
+      <p className="text-sm text-gray-300">
         {disclosureText}
       </p>
-      <p className="font-mono text-[11px] text-muted max-w-2xl mx-auto leading-relaxed">
+      <p className="text-sm text-gray-300 mt-2">
         {pricingText}
       </p>
-    </aside>
+    </div>
   );
 }

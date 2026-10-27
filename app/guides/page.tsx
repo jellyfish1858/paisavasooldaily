@@ -4,7 +4,21 @@ import { getAllGuides } from "@/data/guides";
 import { getAllInteractiveGuides } from "@/lib/guides";
 import { getSiteUrl } from "@/config/site";
 import AffiliateDisclosure from "@/components/AffiliateDisclosure";
-import { ShieldCheck, Search, TrendingUp, Calendar, FileText, Sparkles, ArrowRight, CheckCircle2 } from "lucide-react";
+import {
+  ShieldCheck,
+  Search,
+  TrendingUp,
+  Calendar,
+  FileText,
+  Sparkles,
+  ArrowRight,
+  CheckCircle2,
+  Cpu,
+  ShieldAlert,
+  CalendarDays,
+  Scale,
+  Undo2,
+} from "lucide-react";
 
 export function generateMetadata(): Metadata {
   const siteUrl = getSiteUrl();
@@ -77,6 +91,16 @@ export default function BuyingGuidesDirectoryPage() {
         return <Calendar size={28} className="text-amber-400" />;
       case 'FileText':
         return <FileText size={28} className="text-cyan-400" />;
+      case 'Cpu':
+        return <Cpu size={28} className="text-blue-400" />;
+      case 'ShieldAlert':
+        return <ShieldAlert size={28} className="text-rose-400" />;
+      case 'CalendarDays':
+        return <CalendarDays size={28} className="text-amber-400" />;
+      case 'Scale':
+        return <Scale size={28} className="text-emerald-400" />;
+      case 'Undo2':
+        return <Undo2 size={28} className="text-cyan-400" />;
       default:
         return <Sparkles size={28} className="text-blue-400" />;
     }
@@ -130,7 +154,7 @@ export default function BuyingGuidesDirectoryPage() {
             </div>
           </header>
 
-          {/* Section 1: 5 Interactive Non-Category Guides */}
+          {/* Section 1: 10 Interactive Non-Category Guides */}
           <section aria-labelledby="interactive-guides-heading" className="space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-white/10 pb-4">
               <div>
@@ -141,7 +165,7 @@ export default function BuyingGuidesDirectoryPage() {
                   id="interactive-guides-heading"
                   className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight"
                 >
-                  Essential Consumer Guides (5 Interactive Tools)
+                  Essential Consumer Guides (10 Interactive Decision Tools)
                 </h2>
               </div>
               <span className="font-mono text-xs text-slate-400">

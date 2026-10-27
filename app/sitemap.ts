@@ -86,7 +86,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  // 3. Buying Guides (Technical + 5 Interactive Guides with priority 0.7)
+  // 3. Buying Guides (2 Technical + 10 Interactive Guides with priority 0.7)
   const guides = getAllGuides();
   const guideUrls: MetadataRoute.Sitemap = guides.map((guide) => ({
     url: `${baseUrl}/guides/${guide.slug}`,

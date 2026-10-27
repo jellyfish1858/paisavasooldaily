@@ -790,11 +790,19 @@ test('getCollectionSchema returns valid CollectionPage JSON-LD with ItemList', (
 // -----------------------------------------------------------------------------
 // Interactive Non-Category-Specific Buying Guides
 // -----------------------------------------------------------------------------
-import { getAllInteractiveGuides, getInteractiveGuideBySlug } from '../lib/guides.ts';
+import {
+  getAllInteractiveGuides,
+  getInteractiveGuideBySlug,
+  SPEC_DECODER_ITEMS,
+  AUTHENTICATION_CHECKLIST_ITEMS,
+  DEAL_CALENDAR_DATA,
+  WARRANTY_COMPARISON_TIERS,
+  RETURN_SCENARIOS,
+} from '../lib/guides.ts';
 
-test('Interactive Buying Guides: all 5 core non-category guides are registered', () => {
+test('Interactive Buying Guides: all 10 core non-category guides are registered', () => {
   const guides = getAllInteractiveGuides();
-  assert.equal(guides.length, 5, 'Must contain exactly 5 interactive buying guides');
+  assert.equal(guides.length, 10, 'Must contain exactly 10 interactive buying guides');
 
   const requiredSlugs = [
     'spot-quality',
@@ -802,6 +810,11 @@ test('Interactive Buying Guides: all 5 core non-category guides are registered',
     'best-value',
     'seasonal-shopping',
     'warranties',
+    'read-specs',
+    'spot-fakes',
+    'deal-calendar',
+    'warranty-breakdown',
+    'returns-refunds',
   ];
 
   for (const slug of requiredSlugs) {
@@ -811,6 +824,73 @@ test('Interactive Buying Guides: all 5 core non-category guides are registered',
     assert.ok(guide.description, `Guide "${slug}" must have a description`);
     assert.ok(guide.interactiveType, `Guide "${slug}" must have an interactiveType`);
     assert.ok(guide.keyTakeaways.length >= 3, `Guide "${slug}" must have key takeaways`);
+  }
+});
+
+test('Interactive Buying Guides: data integrity for new 5 essential guides', () => {
+  // 1. Spec decoder
+  assert.ok(SPEC_DECODER_ITEMS.length >= 10, 'Spec decoder must contain comprehensive items');
+  for (const item of SPEC_DECODER_ITEMS) {
+    assert.ok(item.term, 'Spec item must have term');
+    assert.ok(item.plainEnglishTranslation, 'Spec item must have plainEnglishTranslation');
+    assert.ok(['usually-important', 'depends-on-use', 'marketing-heavy'].includes(item.importance));
+  }
+
+  // 2. Authentication checklist: exactly 15 items totaling 100 points
+  assert.equal(AUTHENTICATION_CHECKLIST_ITEMS.length, 15, 'Must contain exactly 15 authentication points');
+  const totalWeight = AUTHENTICATION_CHECKLIST_ITEMS.reduce((sum, item) => sum + item.weight, 0);
+  assert.equal(totalWeight, 100, 'Authentication weights must total exactly 100 points');
+
+  // 3. Deal calendar: 12 months
+  assert.equal(DEAL_CALENDAR_DATA.length, 12, 'Deal calendar must cover all 12 months');
+  for (const month of DEAL_CALENDAR_DATA) {
+    assert.ok(month.savingsScore >= 1 && month.savingsScore <= 5, 'Score must be 1-5');
+    assert.ok(month.bestCategories.length > 0, 'Must list best categories');
+  }
+
+  // 4. Warranty tiers & Return scenarios
+  assert.ok(WARRANTY_COMPARISON_TIERS.length >= 3, 'Must have at least 3 warranty tiers');
+  assert.ok(RETURN_SCENARIOS.length >= 5, 'Must have 5 return scenarios');
+});
+
+test('Interactive Buying Guides: zero prohibited US-only legal and shopping event terms', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+
+  const guideFiles = [
+    'lib/guides.ts',
+    'data/guides.ts',
+    'components/guides/SpecDecoder.tsx',
+    'components/guides/AuthenticationChecklist.tsx',
+    'components/guides/DealCalendar.tsx',
+    'components/guides/WarrantyCalculator.tsx',
+    'components/guides/ReturnFlowchart.tsx',
+    'app/guides/page.tsx',
+    'app/guides/[slug]/page.tsx',
+  ];
+
+  const prohibitedTokens = [
+    ['F', 'C', 'B', 'A'].join(''),
+    ['U', 'C', 'C'].join(''),
+    ['F', 'T', 'C'].join(''),
+    ['Magnu', 'son'].join(''),
+    ['Super', ' Bowl'].join(''),
+    ['Black', ' Friday'].join(''),
+    ['Cyber', ' Monday'].join(''),
+  ];
+  const prohibitedRegex = new RegExp(`\\b(${prohibitedTokens.join('|')})\\b`, 'i');
+
+  for (const relPath of guideFiles) {
+    const fullPath = path.resolve(process.cwd(), relPath);
+    if (fs.existsSync(fullPath)) {
+      const content = fs.readFileSync(fullPath, 'utf8');
+      const match = content.match(prohibitedRegex);
+      assert.equal(
+        match,
+        null,
+        `File ${relPath} must not contain prohibited term: "${match?.[0]}"`
+      );
+    }
   }
 });
 
