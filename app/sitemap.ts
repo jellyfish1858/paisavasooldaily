@@ -7,6 +7,7 @@ import {
 } from "@/app/secure-admin-panel/actions";
 import { getAllCategories } from "@/data/categories";
 import { getAllGuides } from "@/data/guides";
+import { getAllInteractiveGuides } from "@/lib/guides";
 import { getSiteUrl } from "@/config/site";
 
 export const revalidate = 3600;
@@ -85,13 +86,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  // 3. Buying Guides
+  // 3. Buying Guides (Technical + 5 Interactive Guides with priority 0.7)
   const guides = getAllGuides();
   const guideUrls: MetadataRoute.Sitemap = guides.map((guide) => ({
     url: `${baseUrl}/guides/${guide.slug}`,
     lastModified: new Date(guide.lastUpdated),
     changeFrequency: "monthly" as const,
     priority: 0.9,
+  }));
+
+  const interactiveGuides = getAllInteractiveGuides();
+  const interactiveGuideUrls: MetadataRoute.Sitemap = interactiveGuides.map((guide) => ({
+    url: `${baseUrl}/guides/${guide.slug}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
   }));
 
   // 4. Built-in Collections (5 Core Collections)
@@ -147,9 +155,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${baseUrl}/guides`,
       changeFrequency: "weekly" as const,
-      priority: 0.9,
+      priority: 0.8,
     },
     ...guideUrls,
+    ...interactiveGuideUrls,
     {
       url: `${baseUrl}/collections`,
       changeFrequency: "weekly" as const,

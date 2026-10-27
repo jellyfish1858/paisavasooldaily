@@ -20,7 +20,7 @@
   }
 
   body {
-    @apply bg-paper text-ink font-body antialiased;
+    @apply bg-slate-950 text-slate-100 font-body antialiased;
   }
 
   ::selection {

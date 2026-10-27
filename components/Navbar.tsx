@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
@@ -12,11 +13,18 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:shadow-lg group-hover:shadow-blue-500/50 transition-all">
-              <span className="text-white font-bold text-lg">✓</span>
+          <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group focus:outline-none" aria-label="SmartChoice Homepage">
+            <div className="relative w-8 h-8 sm:w-10 sm:h-10 rounded-xl overflow-hidden border border-white/15 shadow-md shadow-blue-500/10 group-hover:shadow-blue-500/30 group-hover:border-blue-400/40 transition-all shrink-0">
+              <Image
+                src="/brand/logo-full.png"
+                alt="SmartChoice Logo"
+                fill
+                sizes="(max-width: 640px) 32px, 40px"
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                priority
+              />
             </div>
-            <span className="text-white font-bold text-xl hidden sm:inline bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200">
+            <span className="text-lg sm:text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-blue-400 group-hover:to-blue-300 transition-colors">
               SmartChoice
             </span>
           </Link>
@@ -34,6 +42,12 @@ export function Navbar() {
               className="text-gray-300 hover:text-white transition-colors font-medium"
             >
               Collections
+            </Link>
+            <Link
+              href="/guides"
+              className="text-gray-300 hover:text-white transition-colors font-medium"
+            >
+              Guides
             </Link>
             <Link
               href="/compare"
@@ -87,6 +101,13 @@ export function Navbar() {
                 onClick={() => setIsOpen(false)}
               >
                 Collections
+              </Link>
+              <Link
+                href="/guides"
+                className="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                Guides
               </Link>
               <Link
                 href="/compare"

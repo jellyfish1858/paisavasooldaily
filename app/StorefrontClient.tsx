@@ -123,6 +123,12 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
               >
                 Browse Collections
               </Link>
+              <Link
+                href="/guides"
+                className="w-full sm:w-auto px-8 py-4 bg-slate-900/80 hover:bg-slate-800 text-blue-300 hover:text-white rounded-lg transition-all border border-blue-500/30 backdrop-blur hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              >
+                Learn More (Guides) →
+              </Link>
             </div>
           </div>
 
@@ -268,12 +274,20 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
             <p className="text-slate-300 mb-8 max-w-xl mx-auto font-body text-sm sm:text-base leading-relaxed">
               Browse thematic editorial collections or discover your next reliable purchase with zero buyer&apos;s remorse.
             </p>
-            <Link
-              href="/collections"
-              className="inline-block px-8 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-mono text-xs uppercase tracking-widest font-bold rounded-lg transition-all transform hover:scale-105 shadow-lg shadow-blue-600/30"
-            >
-              Explore All Collections →
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link
+                href="/collections"
+                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-mono text-xs uppercase tracking-widest font-bold rounded-lg transition-all transform hover:scale-105 shadow-lg shadow-blue-600/30 text-center"
+              >
+                Explore All Collections →
+              </Link>
+              <Link
+                href="/guides"
+                className="w-full sm:w-auto px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white font-mono text-xs uppercase tracking-widest font-bold rounded-lg transition-all border border-white/20 backdrop-blur hover:scale-105 text-center"
+              >
+                Learn More (Interactive Guides)
+              </Link>
+            </div>
           </div>
         </section>
 

@@ -787,6 +787,33 @@ test('getCollectionSchema returns valid CollectionPage JSON-LD with ItemList', (
   assert.equal(schema.mainEntity.itemListElement[0].position, 1);
 });
 
+// -----------------------------------------------------------------------------
+// Interactive Non-Category-Specific Buying Guides
+// -----------------------------------------------------------------------------
+import { getAllInteractiveGuides, getInteractiveGuideBySlug } from '../lib/guides.ts';
+
+test('Interactive Buying Guides: all 5 core non-category guides are registered', () => {
+  const guides = getAllInteractiveGuides();
+  assert.equal(guides.length, 5, 'Must contain exactly 5 interactive buying guides');
+
+  const requiredSlugs = [
+    'spot-quality',
+    'read-reviews',
+    'best-value',
+    'seasonal-shopping',
+    'warranties',
+  ];
+
+  for (const slug of requiredSlugs) {
+    const guide = getInteractiveGuideBySlug(slug);
+    assert.ok(guide, `Guide with slug "${slug}" must exist`);
+    assert.ok(guide.title, `Guide "${slug}" must have a title`);
+    assert.ok(guide.description, `Guide "${slug}" must have a description`);
+    assert.ok(guide.interactiveType, `Guide "${slug}" must have an interactiveType`);
+    assert.ok(guide.keyTakeaways.length >= 3, `Guide "${slug}" must have key takeaways`);
+  }
+});
+
 
 
 
