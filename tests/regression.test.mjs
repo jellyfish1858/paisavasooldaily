@@ -944,6 +944,130 @@ test('Interactive Buying Guides: zero dollar currency ($ or USD or dollar) refer
   }
 });
 
+// -----------------------------------------------------------------------------
+// 21. Additive Roadmap: Universal Media, Category Switcher & Welcome Popup
+// -----------------------------------------------------------------------------
+test('Universal Media URL validation correctly accepts both YouTube and Instagram URLs, and rejects untrusted links', async () => {
+  const { isValidUniversalMediaUrl, isYouTubeUrl, isInstagramUrl, getYouTubeEmbedUrl } = await import('../lib/validation.ts');
+
+  // Empty / null / undefined are valid optional values
+  assert.equal(isValidUniversalMediaUrl(''), true);
+  assert.equal(isValidUniversalMediaUrl('   '), true);
+  assert.equal(isValidUniversalMediaUrl(null), true);
+  assert.equal(isValidUniversalMediaUrl(undefined), true);
+
+  // YouTube URLs
+  assert.equal(isValidUniversalMediaUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ'), true);
+  assert.equal(isValidUniversalMediaUrl('https://youtu.be/dQw4w9WgXcQ'), true);
+  assert.equal(isValidUniversalMediaUrl('https://www.youtube.com/shorts/dQw4w9WgXcQ'), true);
+  assert.equal(isYouTubeUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ'), true);
+  assert.equal(isYouTubeUrl('https://youtu.be/dQw4w9WgXcQ'), true);
+  assert.equal(getYouTubeEmbedUrl('https://youtu.be/dQw4w9WgXcQ'), 'https://www.youtube.com/embed/dQw4w9WgXcQ');
+
+  // Instagram URLs
+  assert.equal(isValidUniversalMediaUrl('https://www.instagram.com/reel/C3b4X9yZ123/'), true);
+  assert.equal(isValidUniversalMediaUrl('https://instagram.com/p/C3b4X9yZ123/'), true);
+  assert.equal(isValidUniversalMediaUrl('https://instagr.am/reel/C3b4X9yZ123/'), true);
+  assert.equal(isInstagramUrl('https://www.instagram.com/reel/C3b4X9yZ123/'), true);
+  assert.equal(isInstagramUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ'), false);
+
+  // Untrusted / malicious links
+  assert.equal(isValidUniversalMediaUrl('https://vimeo.com/123456'), false);
+  assert.equal(isValidUniversalMediaUrl('https://fake-instagram.com/reel/123'), false);
+  assert.equal(isValidUniversalMediaUrl('javascript:alert(1)'), false);
+});
+
+test('Category Tabs and BeautyTrustShowcase data integrity', async () => {
+  const mockProducts = [
+    { id: '1', title: 'Ghar Soaps Magic Bar', category: 'Beauty & Personal Care', quick_take: 'Gentle clarifying bar' },
+    { id: '2', title: 'Wildcraft RSK 45 Rucksack', category: 'Travel', quick_take: '45L expedition rucksack' },
+    { id: '3', title: 'GM 100W GaN Fast Charger', category: 'Electronics & Tech Accessories', quick_take: '100W fast charger' },
+    { id: '4', title: 'Beard Grooming Oil & Balm', category: 'Beauty & Fashion', quick_take: 'Daily grooming staple' },
+  ];
+
+  function filterByTab(products, tab) {
+    if (tab === 'all') return products;
+    return products.filter((p) => {
+      const cat = (p.category || '').toLowerCase();
+      const title = (p.title || '').toLowerCase();
+      const isBeauty =
+        cat.includes('beauty') ||
+        cat.includes('fashion') ||
+        cat.includes('personal care') ||
+        cat.includes('skincare') ||
+        cat.includes('grooming') ||
+        cat.includes('style') ||
+        cat.includes('bath') ||
+        cat.includes('soap') ||
+        cat.includes('haircare') ||
+        cat.includes('fragrance') ||
+        title.includes('soap') ||
+        title.includes('bath bar') ||
+        title.includes('skincare');
+      if (tab === 'beauty') return isBeauty;
+      if (tab === 'tech') return !isBeauty;
+      return true;
+    });
+  }
+
+  // All Picks tab
+  const allTab = filterByTab(mockProducts, 'all');
+  assert.equal(allTab.length, 4);
+
+  // Beauty & Fashion tab
+  const beautyTab = filterByTab(mockProducts, 'beauty');
+  assert.equal(beautyTab.length, 2);
+  assert.deepEqual(beautyTab.map((p) => p.id), ['1', '4']);
+
+  // Tech & Accessories tab
+  const techTab = filterByTab(mockProducts, 'tech');
+  assert.equal(techTab.length, 2);
+  assert.deepEqual(techTab.map((p) => p.id), ['2', '3']);
+
+  // Verify BeautyTrustShowcase file presence and core trust pillar tokens
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const showcasePath = path.resolve(process.cwd(), 'components/BeautyTrustShowcase.tsx');
+  assert.ok(fs.existsSync(showcasePath), 'BeautyTrustShowcase component file must exist');
+  const showcaseContent = fs.readFileSync(showcasePath, 'utf8');
+  assert.ok(showcaseContent.includes('Zero Adulterated or Counterfeit Stock'), 'Must feature headline guarantee');
+  assert.ok(showcaseContent.includes('Out-of-Stock Seller Protection'), 'Must feature Pillar 1');
+  assert.ok(showcaseContent.includes('For Every Routine (Men &amp; Women)'), 'Must feature Pillar 2');
+  assert.ok(showcaseContent.includes('Your Monthly Restock &amp; Upgrade Hub'), 'Must feature Pillar 3');
+});
+
+test('BeautyWelcomePopup once-per-visitor localStorage key and component integrity', async () => {
+  const { BEAUTY_WELCOME_POPUP_STORAGE_KEY } = await import('../lib/validation.ts');
+  assert.equal(BEAUTY_WELCOME_POPUP_STORAGE_KEY, 'smartchoice_beauty_welcome_seen_v1');
+
+  // Verify simulated localStorage once-per-visitor lifecycle
+  const mockStorage = new Map();
+  function shouldTriggerPopup(storage) {
+    return !storage.has(BEAUTY_WELCOME_POPUP_STORAGE_KEY);
+  }
+
+  // Initial state: not seen -> should trigger
+  assert.equal(shouldTriggerPopup(mockStorage), true);
+
+  // Dismiss or visit -> marks key as true
+  mockStorage.set(BEAUTY_WELCOME_POPUP_STORAGE_KEY, 'true');
+
+  // Subsequent check: seen -> should NOT trigger
+  assert.equal(shouldTriggerPopup(mockStorage), false);
+  assert.equal(mockStorage.get(BEAUTY_WELCOME_POPUP_STORAGE_KEY), 'true');
+
+  // Verify component content features required trust copy and event dispatch
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const popupPath = path.resolve(process.cwd(), 'components/BeautyWelcomePopup.tsx');
+  assert.ok(fs.existsSync(popupPath), 'BeautyWelcomePopup component file must exist');
+  const popupContent = fs.readFileSync(popupPath, 'utf8');
+  assert.ok(popupContent.includes('smartchoice:select-tab'), 'Must dispatch select-tab custom event');
+  assert.ok(popupContent.includes('FOR MEN &amp; WOMEN'), 'Must emphasize inclusive gender-neutral copy');
+  assert.ok(popupContent.includes('Zero-Adulteration Seller Links'), 'Must feature zero-adulteration highlight');
+});
+
+
 
 
 

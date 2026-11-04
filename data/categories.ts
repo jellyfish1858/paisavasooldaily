@@ -292,10 +292,12 @@ export function getCategoryForProduct(categoryString?: string, productId?: strin
 
   if (
     clean === "beauty & personal care" ||
+    clean === "beauty & fashion" ||
     clean === "beauty-personal-care" ||
     clean === "/category/beauty-personal-care" ||
     clean === "personal care / beauty" ||
     clean.includes("beauty") ||
+    clean.includes("fashion") ||
     clean.includes("personal care") ||
     clean.includes("bath") ||
     clean.includes("soap")

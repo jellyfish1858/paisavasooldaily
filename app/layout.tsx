@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Navbar from "@/components/Navbar";
+import BeautyWelcomePopup from "@/components/BeautyWelcomePopup";
 import Link from "next/link";
 import Image from "next/image";
 import { getSiteUrl } from "@/config/site";
@@ -84,6 +85,7 @@ export default function RootLayout({
       <body className="flex flex-col min-h-screen bg-slate-950 text-slate-100 antialiased font-body">
         <Navbar />
         <main className="flex-grow">{children}</main>
+        <BeautyWelcomePopup />
 
         <footer className="border-t border-white/10 px-4 py-12 bg-gradient-to-b from-slate-900 to-slate-950 mt-auto">
           <div className="max-w-7xl mx-auto">

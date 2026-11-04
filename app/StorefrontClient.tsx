@@ -5,11 +5,14 @@ import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
 import { CompareProvider } from "@/components/CompareProvider";
 import CompareArena from "@/components/CompareArena";
+import BeautyTrustShowcase from "@/components/BeautyTrustShowcase";
 import type { DbProduct } from "@/utils/supabase/types";
 
 export interface StorefrontClientProps {
   initialProducts?: DbProduct[];
 }
+
+export type CategoryTab = "all" | "beauty" | "tech";
 
 const COLLECTIONS = [
   {
@@ -49,14 +52,41 @@ const COLLECTIONS = [
   },
 ];
 
+function filterProductsByTab(allProducts: DbProduct[], tab: CategoryTab): DbProduct[] {
+  if (tab === "all") return allProducts;
+  return allProducts.filter((product) => {
+    const cat = (product.category || "").toLowerCase();
+    const title = (product.title || "").toLowerCase();
+    const desc = (product.description || product.quick_take || "").toLowerCase();
+
+    const isBeauty =
+      cat.includes("beauty") ||
+      cat.includes("fashion") ||
+      cat.includes("personal care") ||
+      cat.includes("skincare") ||
+      cat.includes("grooming") ||
+      cat.includes("style") ||
+      cat.includes("bath") ||
+      cat.includes("soap") ||
+      cat.includes("haircare") ||
+      cat.includes("fragrance") ||
+      title.includes("soap") ||
+      title.includes("bath bar") ||
+      title.includes("skincare");
+
+    if (tab === "beauty") return isBeauty;
+    if (tab === "tech") return !isBeauty;
+    return true;
+  });
+}
+
 export default function StorefrontClient({ initialProducts = [] }: StorefrontClientProps) {
   const [products, setProducts] = useState<DbProduct[]>(initialProducts);
-  const [displayProducts, setDisplayProducts] = useState<DbProduct[]>(() =>
-    initialProducts.slice(0, 12)
-  );
   const [loading, setLoading] = useState(initialProducts.length === 0);
+  const [activeTab, setActiveTab] = useState<CategoryTab>("all");
   const [itemsToShow, setItemsToShow] = useState(12);
 
+  // Load products from API on mount
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -65,7 +95,6 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
         const data = await res.json();
         if (Array.isArray(data)) {
           setProducts(data);
-          setDisplayProducts(data.slice(0, itemsToShow));
         }
       } catch (error) {
         console.error("Failed to fetch products:", error);
@@ -75,15 +104,87 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
     };
 
     fetchProducts();
-  }, [itemsToShow]);
+  }, []);
 
-  const handleLoadMore = () => {
-    const newCount = itemsToShow + 12;
-    setItemsToShow(newCount);
-    setDisplayProducts(products.slice(0, newCount));
+  // Listen to URL search param ?tab= and custom browser event smartchoice:select-tab
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const syncTabFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab")?.toLowerCase();
+      if (
+        tabParam === "beauty" ||
+        tabParam === "beauty-fashion" ||
+        tabParam === "skincare" ||
+        tabParam === "grooming"
+      ) {
+        setActiveTab("beauty");
+      } else if (
+        tabParam === "tech" ||
+        tabParam === "tech-accessories" ||
+        tabParam === "electronics" ||
+        tabParam === "travel"
+      ) {
+        setActiveTab("tech");
+      } else if (tabParam === "all") {
+        setActiveTab("all");
+      }
+    };
+
+    syncTabFromUrl();
+
+    const handleCustomSelectTab = (event: Event) => {
+      const customEv = event as CustomEvent<string>;
+      const detail = (customEv.detail || "").toLowerCase();
+      if (detail.includes("beauty") || detail.includes("fashion") || detail.includes("skin")) {
+        setActiveTab("beauty");
+        const element = document.getElementById("products-grid");
+        element?.scrollIntoView({ behavior: "smooth" });
+      } else if (detail.includes("tech") || detail.includes("travel")) {
+        setActiveTab("tech");
+        const element = document.getElementById("products-grid");
+        element?.scrollIntoView({ behavior: "smooth" });
+      } else if (detail.includes("all")) {
+        setActiveTab("all");
+      }
+    };
+
+    window.addEventListener("smartchoice:select-tab", handleCustomSelectTab);
+    window.addEventListener("popstate", syncTabFromUrl);
+
+    return () => {
+      window.removeEventListener("smartchoice:select-tab", handleCustomSelectTab);
+      window.removeEventListener("popstate", syncTabFromUrl);
+    };
+  }, []);
+
+  const handleTabChange = (newTab: CategoryTab) => {
+    setActiveTab(newTab);
+    setItemsToShow(12);
+
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (newTab === "all") {
+        url.searchParams.delete("tab");
+      } else {
+        url.searchParams.set("tab", newTab);
+      }
+      window.history.replaceState(null, "", url.toString());
+    }
   };
 
-  const hasMore = itemsToShow < products.length;
+  const handleLoadMore = () => {
+    setItemsToShow((prev) => prev + 12);
+  };
+
+  const filteredProducts = filterProductsByTab(products, activeTab);
+  const displayProducts = filteredProducts.slice(0, itemsToShow);
+  const hasMore = itemsToShow < filteredProducts.length;
+
+  const allCount = products.length;
+  const beautyCount = filterProductsByTab(products, "beauty").length;
+  const techCount = filterProductsByTab(products, "tech").length;
 
   return (
     <CompareProvider>
@@ -140,7 +241,7 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
             </div>
             <div className="p-4 bg-white/5 backdrop-blur rounded-lg border border-white/10">
               <div className="text-2xl mb-2">✓</div>
-              <p className="text-sm text-gray-300">100 Verified Picks</p>
+              <p className="text-sm text-gray-300">100% Verified Picks</p>
             </div>
             <div className="p-4 bg-white/5 backdrop-blur rounded-lg border border-white/10">
               <div className="text-2xl mb-2">💰</div>
@@ -210,20 +311,105 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
           </div>
         </section>
 
-        {/* Products Grid — Endless Scroll */}
-        <section id="products-grid" className="relative px-4 py-16 max-w-7xl mx-auto">
-          <div className="mb-12 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-white/10 pb-6">
+        {/* Products Grid with Universal Category Switcher */}
+        <section id="products-grid" className="relative px-4 py-16 max-w-7xl mx-auto scroll-mt-6">
+          {/* Universal Category Switcher Tab Bar */}
+          <div className="mb-10 flex flex-col items-center">
+            <div className="inline-flex p-1.5 rounded-2xl bg-slate-900/90 border border-white/10 backdrop-blur shadow-2xl gap-1.5 max-w-full overflow-x-auto">
+              {/* Tab 1: All Picks */}
+              <button
+                type="button"
+                onClick={() => handleTabChange("all")}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-mono text-xs uppercase tracking-wider font-bold transition-all duration-200 cursor-pointer whitespace-nowrap ${activeTab === "all"
+                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30 border border-white/20"
+                    : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
+                  }`}
+              >
+                <span>🌟</span>
+                <span>All Picks</span>
+                <span
+                  className={`ml-1 text-[10px] px-2 py-0.5 rounded-full ${activeTab === "all"
+                      ? "bg-white/20 text-white"
+                      : "bg-white/10 text-slate-400"
+                    }`}
+                >
+                  {allCount}
+                </span>
+              </button>
+
+              {/* Tab 2: Beauty & Fashion */}
+              <button
+                type="button"
+                onClick={() => handleTabChange("beauty")}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-mono text-xs uppercase tracking-wider font-bold transition-all duration-200 cursor-pointer whitespace-nowrap ${activeTab === "beauty"
+                    ? "bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 text-white shadow-lg shadow-pink-600/30 border border-white/20"
+                    : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
+                  }`}
+              >
+                <span>✨</span>
+                <span>Beauty &amp; Fashion</span>
+                <span
+                  className={`ml-1 text-[10px] px-2 py-0.5 rounded-full ${activeTab === "beauty"
+                      ? "bg-white/20 text-white"
+                      : "bg-white/10 text-slate-400"
+                    }`}
+                >
+                  {beautyCount}
+                </span>
+              </button>
+
+              {/* Tab 3: Tech & Accessories */}
+              <button
+                type="button"
+                onClick={() => handleTabChange("tech")}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-mono text-xs uppercase tracking-wider font-bold transition-all duration-200 cursor-pointer whitespace-nowrap ${activeTab === "tech"
+                    ? "bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-600/30 border border-white/20"
+                    : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
+                  }`}
+              >
+                <span>⚡</span>
+                <span>Tech &amp; Accessories</span>
+                <span
+                  className={`ml-1 text-[10px] px-2 py-0.5 rounded-full ${activeTab === "tech"
+                      ? "bg-white/20 text-white"
+                      : "bg-white/10 text-slate-400"
+                    }`}
+                >
+                  {techCount}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* High-conversion Anti-Adulteration & Routine Guarantee Banner in Beauty & Fashion Tab */}
+          {activeTab === "beauty" && (
+            <BeautyTrustShowcase
+              onSwitchToAll={() => handleTabChange("all")}
+              productCount={filteredProducts.length}
+            />
+          )}
+
+          {/* Section Header */}
+          <div className="mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-white/10 pb-6">
             <div>
               <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2 tracking-tight">
-                Best Value Products
+                {activeTab === "all"
+                  ? "Best Value Products"
+                  : activeTab === "beauty"
+                    ? "Beauty & Fashion Essentials"
+                    : "Tech & Accessories"}
               </h2>
               <p className="text-slate-400 font-mono text-xs uppercase tracking-wider">
-                Ranked by real customer choices • Qualitative Anti-Regret analysis
+                {activeTab === "all"
+                  ? "Ranked by real customer choices • Qualitative Anti-Regret analysis"
+                  : activeTab === "beauty"
+                    ? "Anti-adulteration certified routine picks for men & women"
+                    : "Charging, travel ergonomics & workstation performance gear"}
               </p>
             </div>
             <div className="font-mono text-xs text-slate-400">
               Showing <span className="text-white font-bold">{displayProducts.length}</span> of{" "}
-              <span className="text-white font-bold">{products.length}</span> curated models
+              <span className="text-white font-bold">{filteredProducts.length}</span> curated models
             </div>
           </div>
 
@@ -238,11 +424,28 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {displayProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
+              {displayProducts.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {displayProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              ) : (
+                activeTab !== "beauty" && (
+                  <div className="text-center py-16 bg-slate-900/50 rounded-2xl border border-white/10">
+                    <p className="text-slate-400 font-mono text-sm mb-4">
+                      No products found matching this category filter.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleTabChange("all")}
+                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-mono text-xs uppercase font-bold rounded-lg transition-all"
+                    >
+                      View All Products
+                    </button>
+                  </div>
+                )
+              )}
 
               {hasMore && (
                 <div className="flex justify-center mt-12">
@@ -251,14 +454,14 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
                     onClick={handleLoadMore}
                     className="px-8 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-mono text-xs uppercase tracking-widest font-bold rounded-lg transition-all transform hover:scale-105 shadow-lg shadow-blue-600/30 cursor-pointer"
                   >
-                    Load More Products ({products.length - itemsToShow} remaining)
+                    Load More Products ({filteredProducts.length - itemsToShow} remaining)
                   </button>
                 </div>
               )}
 
               {!hasMore && displayProducts.length > 0 && (
                 <div className="text-center mt-12 py-6 border-t border-white/10 font-mono text-xs text-slate-400">
-                  You&apos;ve seen all {displayProducts.length} curated products
+                  You&apos;ve seen all {displayProducts.length} curated products in this view
                 </div>
               )}
             </>

@@ -11,6 +11,7 @@ import { generateProductMeta } from '@/lib/seo';
 import { getProductSchema } from '@/lib/structured-data';
 import FloatingCTA from '@/components/FloatingCTA';
 import ProductDetailCTA from '@/components/ProductDetailCTA';
+import ProductMedia from '@/components/ProductMedia';
 
 export const dynamic = 'force-dynamic';
 
@@ -82,6 +83,11 @@ export default async function ProductDetailPage({
       rawProduct.description ||
       '',
     badge: rawProduct.badge || null,
+    youtubeUrl:
+      rawProduct.youtube_url ||
+      (rawProduct as any).youtubeUrl ||
+      rawProduct.video_url ||
+      '',
     pros:
       rawProduct.strengths ||
       rawProduct.pros ||
@@ -160,23 +166,33 @@ export default async function ProductDetailPage({
         <section className="px-4 py-12">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-              {/* Product Image */}
-              <div className="flex items-center justify-center">
-                {product.imageUrl ? (
-                  <div className="relative w-full h-[380px] sm:h-[480px] rounded-2xl overflow-hidden border border-white/10 bg-slate-900 shadow-2xl">
-                    <Image
-                      src={product.imageUrl}
-                      alt={product.title}
-                      fill
-                      priority
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full h-96 bg-slate-800 rounded-2xl flex items-center justify-center text-gray-500 border border-white/10">
-                    No image available
-                  </div>
+              {/* Product Image & Optional Media */}
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-center">
+                  {product.imageUrl ? (
+                    <div className="relative w-full h-[380px] sm:h-[480px] rounded-2xl overflow-hidden border border-white/10 bg-slate-900 shadow-2xl">
+                      <Image
+                        src={product.imageUrl}
+                        alt={product.title}
+                        fill
+                        priority
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-96 bg-slate-800 rounded-2xl flex items-center justify-center text-gray-500 border border-white/10">
+                      No image available
+                    </div>
+                  )}
+                </div>
+
+                {/* Optional Universal Media URL (YouTube or Instagram Reel) */}
+                {product.youtubeUrl && (
+                  <ProductMedia
+                    mediaUrl={product.youtubeUrl}
+                    productTitle={product.title}
+                  />
                 )}
               </div>
 

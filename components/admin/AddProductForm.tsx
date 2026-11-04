@@ -2,11 +2,11 @@
 
 import { useState, type FormEvent } from "react";
 import { postProduct } from "@/app/secure-admin-panel/actions";
-import type { DbProduct, NewDbProduct, QualitativeRating, ResearchSource } from "@/utils/supabase/types";
+import type { DbProduct, NewDbProduct } from "@/utils/supabase/types";
 import { extractRetailerDomain } from "@/config/affiliate";
-import { isValidYouTubeUrl } from "@/lib/validation";
+import { isValidYouTubeUrl, isValidUniversalMediaUrl } from "@/lib/validation";
 
-export { isValidYouTubeUrl };
+export { isValidYouTubeUrl, isValidUniversalMediaUrl };
 
 type Props = {
   onSuccess: (message: string) => void;
@@ -14,70 +14,40 @@ type Props = {
   onInserted: (newProduct?: DbProduct) => void;
 };
 
-const QUALITATIVE_OPTIONS: { label: string; value: "" | QualitativeRating }[] = [
-  { label: "— Not Assessed / Pending Research —", value: "" },
-  { label: "Strong (Clear Advantage / High Reliability)", value: "Strong" },
-  { label: "Good (Solid Above-Average Performer)", value: "Good" },
-  { label: "Fair (Acceptable with Trade-Offs)", value: "Fair" },
-  { label: "Depends (Context / User Dependent)", value: "Depends" },
-  { label: "Limited (Notable Constraint / Weakness)", value: "Limited" },
+const CATEGORY_PRESETS = [
+  { label: "Electronics & Tech Accessories", value: "Electronics & Tech Accessories", icon: "⚡" },
+  { label: "Beauty & Fashion", value: "Beauty & Fashion", icon: "✨" },
+  { label: "Travel", value: "Travel", icon: "✈️" },
 ];
 
-const emptyForm = {
-  // Basic Info
-  title: "",
-  slug: "",
-  category: "Travel",
-  badge: "Best Value",
-  description: "",
-  imageUrl: "",
-  youtubeUrl: "",
-  retailerUrl: "",
-  amazonUrl: "",
-  isOutOfStock: false,
-
-  // Decision Information
-  quickTake: "",
-  pros: [""],
-  cons: [""],
-  keySpecs: [{ key: "", value: "" }],
-  goodForRaw: "",
-  skipIfRaw: "",
-  whatToCheckRaw: "",
-  finalTake: "",
-
-  // Qualitative Anti-Regret Matrix
-  matrixPerformance: "" as "" | QualitativeRating,
-  matrixValue: "" as "" | QualitativeRating,
-  matrixEaseOfUse: "" as "" | QualitativeRating,
-  matrixPortability: "" as "" | QualitativeRating,
-  matrixCompatibility: "" as "" | QualitativeRating,
-  matrixLongTermSuitability: "" as "" | QualitativeRating,
-
-  // Research
-  researchBasis: "",
-  researchSourcesRaw: "",
-  lastReviewedAt: "",
-};
-
-const SUGGESTED_CATEGORIES = [
-  "Travel",
-  "Beauty & Personal Care",
-  "Electronics & Tech Accessories",
-];
-
-const SUGGESTED_BADGES = [
+const BADGE_PRESETS = [
   "Best Overall",
   "Best Value",
   "Editor's Choice",
   "Flagship Pick",
-  "Creator Pick",
-  "Power Pick",
-  "Silence Pick",
-  "Rugged Pick",
-  "Athlete Pick",
-  "Reader's Choice",
+  "Top Pick",
+  "Budget Pick",
 ];
+
+const emptyForm = {
+  title: "",
+  slug: "",
+  category: "Electronics & Tech Accessories",
+  badge: "Best Value",
+  imageUrl: "",
+  retailerUrl: "",
+  mediaUrl: "",
+  isOutOfStock: false,
+
+  // Decision Information (matches Product Detail Page)
+  quickTake: "",
+  keySpecs: [{ key: "", value: "" }],
+  pros: [""],
+  cons: [""],
+  finalTake: "",
+  goodForRaw: "",
+  skipIfRaw: "",
+};
 
 function Field({
   label,
@@ -106,9 +76,6 @@ function Field({
 const inputClasses =
   "w-full border-2 border-line bg-paper px-4 py-3 text-sm text-ink font-body focus:border-accent focus:bg-white focus:outline-none transition-colors placeholder:text-muted/60";
 
-const selectClasses =
-  "w-full border-2 border-line bg-paper px-4 py-2.5 text-sm text-ink font-body focus:border-accent focus:bg-white focus:outline-none transition-colors";
-
 export default function AddProductForm({ onSuccess, onError, onInserted }: Props) {
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
@@ -116,9 +83,10 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
   const update = (key: keyof typeof emptyForm) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const value = e.target.type === "checkbox"
-      ? (e.target as HTMLInputElement).checked
-      : e.target.value;
+    const value =
+      e.target.type === "checkbox"
+        ? (e.target as HTMLInputElement).checked
+        : e.target.value;
     setForm((f) => ({ ...f, [key]: value }));
   };
 
@@ -160,11 +128,15 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
       return { ...f, keySpecs: next };
     });
   };
-  const addSpec = () => setForm((f) => ({ ...f, keySpecs: [...f.keySpecs, { key: "", value: "" }] }));
+  const addSpec = () =>
+    setForm((f) => ({ ...f, keySpecs: [...f.keySpecs, { key: "", value: "" }] }));
   const removeSpec = (index: number) =>
     setForm((f) => ({
       ...f,
-      keySpecs: f.keySpecs.length > 1 ? f.keySpecs.filter((_, i) => i !== index) : [{ key: "", value: "" }],
+      keySpecs:
+        f.keySpecs.length > 1
+          ? f.keySpecs.filter((_, i) => i !== index)
+          : [{ key: "", value: "" }],
     }));
 
   const parseLines = (raw: string): string[] =>
@@ -173,31 +145,14 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
       .map((item) => item.trim())
       .filter(Boolean);
 
-  const parseSources = (raw: string): ResearchSource[] => {
-    return raw
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter(Boolean)
-      .map((line) => {
-        if (line.includes("|")) {
-          const [title, url] = line.split("|").map((s) => s.trim());
-          return { title, url };
-        }
-        return {
-          title: line,
-          url: line.startsWith("http") ? line : undefined,
-        };
-      });
-  };
-
-  const isYouTubeValid = isValidYouTubeUrl(form.youtubeUrl);
+  const isMediaValid = isValidUniversalMediaUrl(form.mediaUrl);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (submitting) return;
 
-    if (!isValidYouTubeUrl(form.youtubeUrl)) {
-      onError("Please enter a valid YouTube URL (youtube.com or youtu.be)");
+    if (!isValidUniversalMediaUrl(form.mediaUrl)) {
+      onError("Please enter a valid YouTube or Instagram URL, or leave blank.");
       return;
     }
 
@@ -206,26 +161,31 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
     const strengthsList = form.pros.map((p) => p.trim()).filter(Boolean);
     const tradeOffsList = form.cons.map((c) => c.trim()).filter(Boolean);
     const finalTakeText = form.finalTake.trim();
+    const quickTakeText = form.quickTake.trim();
     const serializedKeySpecs = form.keySpecs
       .filter((s) => s.key.trim() || s.value.trim())
-      .map((s) => (s.value.trim() ? `${s.key.trim()}: ${s.value.trim()}` : s.key.trim()));
+      .map((s) =>
+        s.value.trim() ? `${s.key.trim()}: ${s.value.trim()}` : s.key.trim()
+      );
+
+    const cleanedMediaUrl = form.mediaUrl.trim() || undefined;
 
     const payload: NewDbProduct = {
       // Basic Info
       title: form.title.trim(),
       slug: form.slug.trim() || undefined,
-      category: form.category.trim() || "Travel",
+      category: form.category.trim() || "Electronics & Tech Accessories",
       badge: form.badge.trim() || undefined,
-      description: form.description.trim(),
+      description: quickTakeText || form.title.trim(),
       image_url: form.imageUrl.trim(),
-      youtube_url: form.youtubeUrl.trim() || undefined,
-      retailer_url: (form.retailerUrl || form.amazonUrl).trim(),
-      retailer_domain: extractRetailerDomain(form.retailerUrl || form.amazonUrl),
-      amazon_url: (form.retailerUrl || form.amazonUrl).trim(),
+      youtube_url: cleanedMediaUrl,
+      retailer_url: form.retailerUrl.trim(),
+      retailer_domain: extractRetailerDomain(form.retailerUrl),
+      amazon_url: form.retailerUrl.trim(),
       is_out_of_stock: form.isOutOfStock,
 
-      // Decision Information
-      quick_take: form.quickTake.trim() || undefined,
+      // Decision Information (matches Product Detail Page)
+      quick_take: quickTakeText || undefined,
       key_specs: serializedKeySpecs,
       strengths: strengthsList,
       trade_offs: tradeOffsList,
@@ -233,21 +193,19 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
       cons: tradeOffsList,
       good_for: parseLines(form.goodForRaw),
       skip_if: parseLines(form.skipIfRaw),
-      what_to_check: parseLines(form.whatToCheckRaw),
+      what_to_check: [],
       final_take: finalTakeText || undefined,
 
-      // Qualitative Anti-Regret Matrix (no numeric scores, no fabricated values)
-      matrix_performance: form.matrixPerformance || null,
-      matrix_value: form.matrixValue || null,
-      matrix_ease_of_use: form.matrixEaseOfUse || null,
-      matrix_portability: form.matrixPortability || null,
-      matrix_compatibility: form.matrixCompatibility || null,
-      matrix_long_term_suitability: form.matrixLongTermSuitability || null,
-
-      // Research
-      research_basis: form.researchBasis.trim() || undefined,
-      research_sources: parseSources(form.researchSourcesRaw),
-      last_reviewed_at: form.lastReviewedAt ? new Date(form.lastReviewedAt).toISOString() : null,
+      // Zero extra/unused fields
+      matrix_performance: null,
+      matrix_value: null,
+      matrix_ease_of_use: null,
+      matrix_portability: null,
+      matrix_compatibility: null,
+      matrix_long_term_suitability: null,
+      research_basis: undefined,
+      research_sources: [],
+      last_reviewed_at: null,
     };
 
     try {
@@ -272,25 +230,62 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
     <div className="border-2 border-line bg-paper shadow-hard">
       <div className="border-b-2 border-line bg-panel px-6 py-4 sm:px-8">
         <span className="font-mono text-[11px] uppercase tracking-widest2 text-accent font-bold">
-          ⚡ Research-First Product Catalog
+          ⚡ Streamlined Product Editor
         </span>
         <h2 className="font-display text-2xl font-bold uppercase tracking-tight sm:text-3xl text-ink">
           Add New Product
         </h2>
         <p className="font-mono text-xs text-muted mt-1">
-          Publish curated products with qualitative Anti-Regret analysis and decision support.
+          Publish products with verified specs, editorial quick take, decision support, and optional video proof.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-8 p-6 sm:p-8">
-        {/* SECTION 1: BASIC INFORMATION */}
+        {/* SECTION 1: CORE PRODUCT IDENTIFIERS & BUYING LINKS */}
         <section className="space-y-5">
           <div className="border-b border-line/20 pb-2">
             <span className="font-mono text-xs uppercase tracking-widest font-bold text-accent">
-              1. Basic Information
+              1. Product Identifiers & Links
             </span>
           </div>
 
+          {/* Category with Quick-Select Presets */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="font-mono text-[11px] uppercase tracking-widest2 font-bold text-ink">
+                Category
+              </span>
+              <span className="font-mono text-[10px] text-muted">
+                Quick-select or type custom
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {CATEGORY_PRESETS.map((preset) => (
+                <button
+                  key={preset.value}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, category: preset.value }))}
+                  className={`px-3 py-1.5 font-mono text-xs uppercase tracking-wider font-bold transition-all border-2 ${
+                    form.category === preset.value
+                      ? "border-accent bg-accent text-ink shadow-sm"
+                      : "border-line bg-panel text-ink hover:border-accent/60"
+                  }`}
+                >
+                  <span className="mr-1.5">{preset.icon}</span>
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            <input
+              required
+              placeholder="e.g. Electronics & Tech Accessories, Beauty & Fashion, Travel..."
+              value={form.category}
+              onChange={update("category")}
+              className={inputClasses}
+            />
+          </div>
+
+          {/* Title and Optional URL Slug */}
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Field label="Product Title" hint="Required">
               <input
@@ -312,102 +307,26 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
             </Field>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field label="Category" hint="Select or type">
-              <input
-                required
-                list="category-suggestions"
-                placeholder="Travel, Beauty & Personal Care, Electronics & Tech Accessories..."
-                value={form.category}
-                onChange={update("category")}
-                className={inputClasses}
-              />
-              <datalist id="category-suggestions">
-                {SUGGESTED_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat} />
-                ))}
-              </datalist>
-            </Field>
-
-            <Field label="Badge Label" hint="Editorial pick badge">
-              <input
-                list="badge-suggestions"
-                placeholder="Best Overall, Best Value, Editor's Choice..."
-                value={form.badge}
-                onChange={update("badge")}
-                className={inputClasses}
-              />
-              <datalist id="badge-suggestions">
-                {SUGGESTED_BADGES.map((b) => (
+          {/* Badge & Stock Status */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 items-center">
+            <div>
+              <Field label="Badge Label (Optional)" hint="Featured pick tag">
+                <input
+                  list="badge-options"
+                  placeholder="Best Overall, Best Value, Editor's Choice..."
+                  value={form.badge}
+                  onChange={update("badge")}
+                  className={inputClasses}
+                />
+              </Field>
+              <datalist id="badge-options">
+                {BADGE_PRESETS.map((b) => (
                   <option key={b} value={b} />
                 ))}
               </datalist>
-            </Field>
-          </div>
-
-          <Field label="Description" hint="Required short summary of the product">
-            <textarea
-              required
-              rows={2}
-              placeholder="Industry-leading noise cancelling over-ear headphones with custom carbon driver."
-              value={form.description}
-              onChange={update("description")}
-              className={inputClasses}
-            />
-          </Field>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field label="Image URL" hint="Required direct HTTPS image link">
-              <input
-                required
-                type="url"
-                placeholder="https://images.unsplash.com/... or retailer image link"
-                value={form.imageUrl}
-                onChange={update("imageUrl")}
-                className={inputClasses}
-              />
-            </Field>
-
-            <Field
-              label="Retailer URL"
-              hint={`Required retailer link (Domain: ${extractRetailerDomain(form.retailerUrl || form.amazonUrl)})`}
-            >
-              <input
-                required
-                type="url"
-                placeholder="https://... Amazon, Flipkart, Snapdeal, or other retailer"
-                value={form.retailerUrl || form.amazonUrl}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setForm((prev) => ({ ...prev, retailerUrl: val, amazonUrl: val }));
-                }}
-                className={inputClasses}
-              />
-            </Field>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 items-start">
-            <div>
-              <Field
-                label="YouTube Video URL (optional)"
-                hint="Add a YouTube product review, demo, or buying guide."
-              >
-                <input
-                  type="url"
-                  placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
-                  value={form.youtubeUrl}
-                  onChange={update("youtubeUrl")}
-                  className={`${inputClasses} ${!isYouTubeValid ? "border-red-500 focus:border-red-600" : ""}`}
-                />
-              </Field>
-              {!isYouTubeValid && (
-                <p className="mt-1 font-mono text-[11px] text-red-600 font-bold">
-                  Please enter a valid YouTube URL (youtube.com or youtu.be)
-                </p>
-              )}
             </div>
 
-            <label className="flex items-center gap-3 border-2 border-line bg-panel p-4 cursor-pointer mt-0">
+            <label className="flex items-center gap-3 border-2 border-line bg-panel p-3.5 cursor-pointer sm:mt-5">
               <input
                 type="checkbox"
                 checked={form.isOutOfStock}
@@ -419,130 +338,94 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
                   Mark as Out of Stock
                 </span>
                 <span className="font-mono text-[10px] text-muted">
-                  Displays stock warning on card and disables direct checkout
+                  Displays stock warning and disables checkout CTA
                 </span>
               </div>
             </label>
           </div>
+
+          {/* Image URL & Retailer Buy URL */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <Field label="Product Image URL" hint="Direct HTTPS image link">
+              <input
+                required
+                type="url"
+                placeholder="https://images.unsplash.com/... or retailer image link"
+                value={form.imageUrl}
+                onChange={update("imageUrl")}
+                className={inputClasses}
+              />
+            </Field>
+
+            <Field
+              label='Affiliate Retailer Buy URL ("Check Price & Buy")'
+              hint={`Domain: ${extractRetailerDomain(form.retailerUrl)}`}
+            >
+              <input
+                required
+                type="url"
+                placeholder="https://www.amazon.in/dp/... or Flipkart link"
+                value={form.retailerUrl}
+                onChange={update("retailerUrl")}
+                className={inputClasses}
+              />
+            </Field>
+          </div>
+
+          {/* Optional Universal Media URL (YouTube or Instagram) */}
+          <div>
+            <Field
+              label="Optional Video / Social Proof URL (YouTube or Instagram)"
+              hint="YouTube video/short OR Instagram Reel/Post"
+            >
+              <input
+                type="url"
+                placeholder="https://www.youtube.com/watch?v=... or https://www.instagram.com/reel/..."
+                value={form.mediaUrl}
+                onChange={update("mediaUrl")}
+                className={`${inputClasses} ${!isMediaValid ? "border-red-500 focus:border-red-600" : ""}`}
+              />
+            </Field>
+            {!isMediaValid && (
+              <p className="mt-1 font-mono text-[11px] text-red-600 font-bold">
+                Please enter a valid YouTube URL (youtube.com / youtu.be) or Instagram URL (instagram.com)
+              </p>
+            )}
+          </div>
         </section>
 
-        {/* SECTION 2: DECISION INFORMATION */}
+        {/* SECTION 2: EDITORIAL CONTENT & DECISION SUPPORT */}
         <section className="space-y-6">
           <div className="border-b border-line/20 pb-2">
             <span className="font-mono text-xs uppercase tracking-widest font-bold text-accent">
-              2. Decision Information
+              2. Editorial Content & Decision Support
             </span>
           </div>
 
-          <Field label="Quick Take" hint="Required 20-30 word upfront summary for skimmers">
+          {/* Editorial Quick Take */}
+          <Field
+            label="Editorial Quick Take"
+            hint="2-3 sentence upfront summary displayed in top highlight box"
+          >
             <textarea
               required
-              rows={2}
-              placeholder="The undisputed active noise cancellation benchmark for frequent travelers and commuters who prioritize sound isolation over compact folding."
+              rows={3}
+              placeholder="The benchmark active noise cancellation headphones for frequent commuters and remote workers seeking premium acoustic isolation."
               value={form.quickTake}
               onChange={update("quickTake")}
               className={inputClasses}
             />
           </Field>
 
-          {/* Repeatable Pros & Cons */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {/* Repeatable Pros */}
-            <div className="border border-line/20 bg-panel/30 p-4 rounded-none">
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <span className="font-mono text-xs uppercase tracking-widest font-bold text-ink block">
-                    Pros (repeatable list)
-                  </span>
-                  <span className="font-mono text-[10px] text-muted">
-                    Key advantages & reasons to buy
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={addPro}
-                  className="border-2 border-line bg-paper px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-accent hover:bg-ink hover:text-paper transition-colors"
-                >
-                  + Add Pro
-                </button>
-              </div>
-              <div className="space-y-2">
-                {form.pros.map((pro, idx) => (
-                  <div key={idx} className="flex gap-2 items-center">
-                    <input
-                      placeholder={`Pro #${idx + 1} (e.g. Superb active noise cancellation)`}
-                      value={pro}
-                      onChange={(e) => handleProChange(idx, e.target.value)}
-                      className={inputClasses}
-                    />
-                    {form.pros.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removePro(idx)}
-                        className="h-10 w-10 shrink-0 border-2 border-line bg-paper text-muted hover:text-red-600 hover:bg-panel font-bold transition-colors"
-                        title="Remove pro"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Repeatable Cons */}
-            <div className="border border-line/20 bg-panel/30 p-4 rounded-none">
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <span className="font-mono text-xs uppercase tracking-widest font-bold text-ink block">
-                    Cons (repeatable list)
-                  </span>
-                  <span className="font-mono text-[10px] text-muted">
-                    Trade-offs & points to consider
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={addCon}
-                  className="border-2 border-line bg-paper px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-accent hover:bg-ink hover:text-paper transition-colors"
-                >
-                  + Add Con
-                </button>
-              </div>
-              <div className="space-y-2">
-                {form.cons.map((con, idx) => (
-                  <div key={idx} className="flex gap-2 items-center">
-                    <input
-                      placeholder={`Con #${idx + 1} (e.g. Does not fold into a compact case)`}
-                      value={con}
-                      onChange={(e) => handleConChange(idx, e.target.value)}
-                      className={inputClasses}
-                    />
-                    {form.cons.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeCon(idx)}
-                        className="h-10 w-10 shrink-0 border-2 border-line bg-paper text-muted hover:text-red-600 hover:bg-panel font-bold transition-colors"
-                        title="Remove con"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Repeatable Key Specs (Key / Value Rows) */}
-          <div className="border border-line/20 bg-panel/30 p-4 rounded-none">
+          {/* Repeatable Key Specifications */}
+          <div className="border border-line/20 bg-panel/30 p-4">
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <span className="font-mono text-xs uppercase tracking-widest font-bold text-ink block">
-                  Key Specs (repeatable key/value rows)
+                  Key Specifications (Key-Value pairs)
                 </span>
                 <span className="font-mono text-[10px] text-muted">
-                  Add technical or physical attributes (e.g. Battery Life: 30 hours)
+                  Displayed in the Key Specifications table on the product page
                 </span>
               </div>
               <button
@@ -583,197 +466,146 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-            <Field label="Good For" hint="Who this product serves best (one per line)">
+          {/* Repeatable Pros & Cons */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            {/* Pros */}
+            <div className="border border-line/20 bg-panel/30 p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <span className="font-mono text-xs uppercase tracking-widest font-bold text-ink block">
+                    Verified Strengths (Pros)
+                  </span>
+                  <span className="font-mono text-[10px] text-muted">
+                    Displayed with green checkmarks
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={addPro}
+                  className="border-2 border-line bg-paper px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-accent hover:bg-ink hover:text-paper transition-colors"
+                >
+                  + Add Pro
+                </button>
+              </div>
+              <div className="space-y-2">
+                {form.pros.map((pro, idx) => (
+                  <div key={idx} className="flex gap-2 items-center">
+                    <input
+                      placeholder={`Strength #${idx + 1} (e.g. Class-leading active noise cancellation)`}
+                      value={pro}
+                      onChange={(e) => handleProChange(idx, e.target.value)}
+                      className={inputClasses}
+                    />
+                    {form.pros.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removePro(idx)}
+                        className="h-10 w-10 shrink-0 border-2 border-line bg-paper text-muted hover:text-red-600 hover:bg-panel font-bold transition-colors"
+                        title="Remove strength"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Cons */}
+            <div className="border border-line/20 bg-panel/30 p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <span className="font-mono text-xs uppercase tracking-widest font-bold text-ink block">
+                    Trade-offs & Limitations (Cons)
+                  </span>
+                  <span className="font-mono text-[10px] text-muted">
+                    Displayed with red crossmarks
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={addCon}
+                  className="border-2 border-line bg-paper px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-accent hover:bg-ink hover:text-paper transition-colors"
+                >
+                  + Add Con
+                </button>
+              </div>
+              <div className="space-y-2">
+                {form.cons.map((con, idx) => (
+                  <div key={idx} className="flex gap-2 items-center">
+                    <input
+                      placeholder={`Trade-off #${idx + 1} (e.g. Does not fold into a compact size)`}
+                      value={con}
+                      onChange={(e) => handleConChange(idx, e.target.value)}
+                      className={inputClasses}
+                    />
+                    {form.cons.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeCon(idx)}
+                        className="h-10 w-10 shrink-0 border-2 border-line bg-paper text-muted hover:text-red-600 hover:bg-panel font-bold transition-colors"
+                        title="Remove trade-off"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Editorial Verdict (Final Take) */}
+          <Field
+            label="Editorial Verdict (Final Take)"
+            hint="Displayed in the gradient Editorial Verdict box"
+          >
+            <textarea
+              rows={3}
+              placeholder="Best for audiophiles and frequent travelers seeking maximum acoustic isolation who don't mind the non-folding case."
+              value={form.finalTake}
+              onChange={update("finalTake")}
+              className={inputClasses}
+            />
+          </Field>
+
+          {/* Target Audience: Who This Is Good For & Skip If */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <Field
+              label="Who This Is Good For"
+              hint="Maps to Ideal 1, Ideal 2 on product page (one per line)"
+            >
               <textarea
                 rows={3}
-                placeholder="Frequent flyers&#10;Daily train/bus commuters&#10;Open-plan office workers"
+                placeholder="Frequent flyers&#10;Daily office commuters&#10;Remote workers needing focus"
                 value={form.goodForRaw}
                 onChange={update("goodForRaw")}
                 className={inputClasses}
               />
             </Field>
 
-            <Field label="Skip If" hint="Who should look elsewhere (one per line)">
+            <Field
+              label="Skip If"
+              hint="Maps to Caution 1, Caution 2 on product page (one per line)"
+            >
               <textarea
                 rows={3}
-                placeholder="You need pocketable folding cans&#10;Tight budget under ₹15,000&#10;Strictly for gym and intense workouts"
+                placeholder="You need ultra-compact folding headphones&#10;Budget is strictly under ₹15,000&#10;Primary use is intense workout sweating"
                 value={form.skipIfRaw}
                 onChange={update("skipIfRaw")}
                 className={inputClasses}
               />
             </Field>
-
-            <Field label="What to Check Before Buying" hint="Pre-purchase verifications (one per line)">
-              <textarea
-                rows={3}
-                placeholder="Ear cup depth for your ear size&#10;Included USB-C cable length&#10;Device Bluetooth codec compatibility"
-                value={form.whatToCheckRaw}
-                onChange={update("whatToCheckRaw")}
-                className={inputClasses}
-              />
-            </Field>
-          </div>
-
-          <Field label="Final Take / Target Profile" hint="Clear bottom-line conclusion">
-            <textarea
-              rows={2}
-              placeholder="Best for audiophiles and commuters seeking maximum acoustic isolation who don't mind the non-folding carry case."
-              value={form.finalTake}
-              onChange={update("finalTake")}
-              className={inputClasses}
-            />
-          </Field>
-        </section>
-
-        {/* SECTION 3: ANTI-REGRET MATRIX (QUALITATIVE) */}
-        <section className="space-y-5">
-          <div className="border-b border-line/20 pb-2">
-            <span className="font-mono text-xs uppercase tracking-widest font-bold text-accent">
-              3. Anti-Regret Qualitative Matrix (No Numeric Scores)
-            </span>
-            <p className="font-mono text-[11px] text-muted mt-1">
-              Select qualitative evaluation tiers based on research. Leave unassessed if not verified.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Field label="Performance / Reliability">
-              <select
-                value={form.matrixPerformance}
-                onChange={update("matrixPerformance")}
-                className={selectClasses}
-              >
-                {QUALITATIVE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Value for Money">
-              <select
-                value={form.matrixValue}
-                onChange={update("matrixValue")}
-                className={selectClasses}
-              >
-                {QUALITATIVE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Ease of Use">
-              <select
-                value={form.matrixEaseOfUse}
-                onChange={update("matrixEaseOfUse")}
-                className={selectClasses}
-              >
-                {QUALITATIVE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Portability / Footprint">
-              <select
-                value={form.matrixPortability}
-                onChange={update("matrixPortability")}
-                className={selectClasses}
-              >
-                {QUALITATIVE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Compatibility / Ecosystem">
-              <select
-                value={form.matrixCompatibility}
-                onChange={update("matrixCompatibility")}
-                className={selectClasses}
-              >
-                {QUALITATIVE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Long-term Durability">
-              <select
-                value={form.matrixLongTermSuitability}
-                onChange={update("matrixLongTermSuitability")}
-                className={selectClasses}
-              >
-                {QUALITATIVE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
           </div>
         </section>
 
-        {/* SECTION 4: RESEARCH & EDITORIAL RIGOR */}
-        <section className="space-y-5">
-          <div className="border-b border-line/20 pb-2">
-            <span className="font-mono text-xs uppercase tracking-widest font-bold text-accent">
-              4. Research & Editorial Rigor
-            </span>
-            <p className="font-mono text-[11px] text-muted mt-1">
-              Document the actual research basis and genuine sources. Leave blank if not yet researched.
-            </p>
-          </div>
-
-          <Field label="Research Basis" hint="Methodology summary (e.g. 15hr comparative analysis across 40 user logs)">
-            <textarea
-              rows={2}
-              placeholder="Synthesized findings from teardown reports, owner community feedback (6+ months use), and manufacturer whitepapers."
-              value={form.researchBasis}
-              onChange={update("researchBasis")}
-              className={inputClasses}
-            />
-          </Field>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field label="Research Sources" hint="Format: Source Name | URL (one per line)">
-              <textarea
-                rows={3}
-                placeholder="RTINGS Technical Measurements | https://www.rtings.com/headphones/reviews/sony/wh-1000xm5&#10;Sony Official Spec Sheet | https://electronics.sony.com"
-                value={form.researchSourcesRaw}
-                onChange={update("researchSourcesRaw")}
-                className={inputClasses}
-              />
-            </Field>
-
-            <Field label="Last Reviewed Date" hint="Date of last editorial verification">
-              <input
-                type="date"
-                value={form.lastReviewedAt}
-                onChange={update("lastReviewedAt")}
-                className={inputClasses}
-              />
-            </Field>
-          </div>
-        </section>
-
-        {/* Submit button with duplicate submission prevention */}
+        {/* Submit button */}
         <button
           type="submit"
-          disabled={submitting || !isYouTubeValid}
+          disabled={submitting || !isMediaValid}
           className="mt-2 border-2 border-line bg-accent px-6 py-4 font-mono text-sm font-bold uppercase tracking-widest2 text-ink shadow-hard-sm transition-all hover:-translate-y-0.5 hover:bg-ink hover:text-paper disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {submitting ? "Publishing via Server Action…" : "🚀 Publish Product to Storefront"}
+          {submitting ? "Publishing to Database…" : "🚀 Publish Product to Storefront"}
         </button>
       </form>
     </div>

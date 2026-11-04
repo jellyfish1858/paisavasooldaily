@@ -114,9 +114,11 @@ function normalizeCategoryName(rawCategory?: string, title?: string, id?: string
 
   if (
     clean === "beauty & personal care" ||
+    clean === "beauty & fashion" ||
     clean === "beauty-personal-care" ||
     clean === "personal care / beauty" ||
     clean.includes("beauty") ||
+    clean.includes("fashion") ||
     clean.includes("personal care") ||
     clean.includes("bath") ||
     clean.includes("soap")
@@ -617,50 +619,68 @@ export async function postProduct(productData: NewDbProduct): Promise<{ success:
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)+/g, "");
 
+    const cleanStr = (val?: string | null): string | null => {
+      if (!val) return null;
+      const trimmed = stripProductMeta(val).trim();
+      return trimmed.length > 0 ? trimmed : null;
+    };
+
     const slug = productData.slug?.trim() || generateSlug(productData.title);
 
-    const strengths = (productData.strengths || productData.reasons_to_buy || productData.pros || []).map((s) => stripProductMeta(String(s)));
-    const tradeOffs = (productData.trade_offs || productData.reasons_not_to_buy || productData.cons || []).map((t) => stripProductMeta(String(t)));
-    const finalTake = stripProductMeta(productData.final_take || productData.verdict || "");
-    const quickTake = stripProductMeta(productData.quick_take || productData.description || "");
+    const strengths = (productData.strengths || productData.reasons_to_buy || productData.pros || [])
+      .map((s) => stripProductMeta(String(s)).trim())
+      .filter(Boolean);
+    const tradeOffs = (productData.trade_offs || productData.reasons_not_to_buy || productData.cons || [])
+      .map((t) => stripProductMeta(String(t)).trim())
+      .filter(Boolean);
+    const finalTake = cleanStr(productData.final_take || productData.verdict);
+    const quickTake = cleanStr(productData.quick_take || productData.description);
 
     const productId = (productData as any).id;
 
-    const youtubeUrl = (
+    const mediaUrl = cleanStr(
       productData.youtube_url ||
       (productData as any).youtubeUrl ||
-      productData.youtube_url ||
+      productData.video_url ||
       ""
-    ).trim();
+    );
+
+    const cleanedSpecs = Array.isArray(productData.key_specs)
+      ? productData.key_specs
+          .map((s) => (typeof s === "string" ? s.trim() : s))
+          .filter(Boolean)
+      : productData.key_specs || [];
 
     const fullPayload: Record<string, any> = {
       ...(productId ? { id: productId } : {}),
-      title: stripProductMeta(productData.title || ""),
+      title: stripProductMeta(productData.title || "").trim(),
       slug,
-      description: stripProductMeta(productData.description || ""),
+      description: quickTake || stripProductMeta(productData.title || "").trim(),
       category: normalizeCategoryName(productData.category, productData.title, productId),
-      badge: stripProductMeta(productData.badge || ""),
+      badge: cleanStr(productData.badge),
       image_url: (productData.image_url || "").trim(),
-      youtube_url: youtubeUrl || null,
+      youtube_url: mediaUrl,
+      video_url: mediaUrl,
       retailer_url: (productData.retailer_url || productData.amazon_url || "").trim(),
       retailer_domain: productData.retailer_domain || extractRetailerDomain(productData.retailer_url || productData.amazon_url || ""),
-      quick_take: quickTake || undefined,
-      key_specs: productData.key_specs || [],
+      quick_take: quickTake,
+      key_specs: cleanedSpecs,
       strengths,
       trade_offs: tradeOffs,
-      good_for: toCleanStringArray(productData.good_for),
-      skip_if: toCleanStringArray(productData.skip_if),
-      what_to_check: toCleanStringArray(productData.what_to_check),
-      final_take: finalTake || undefined,
-      matrix_performance: productData.matrix_performance || null,
-      matrix_value: productData.matrix_value || null,
-      matrix_ease_of_use: productData.matrix_ease_of_use || null,
-      matrix_portability: productData.matrix_portability || null,
-      matrix_compatibility: productData.matrix_compatibility || null,
-      matrix_long_term_suitability: productData.matrix_long_term_suitability || null,
-      research_basis: stripProductMeta(productData.research_basis || "") || undefined,
-      research_sources: productData.research_sources || [],
-      last_reviewed_at: productData.last_reviewed_at || null,
+      good_for: toCleanStringArray(productData.good_for).map((s) => s.trim()).filter(Boolean),
+      skip_if: toCleanStringArray(productData.skip_if).map((s) => s.trim()).filter(Boolean),
+      what_to_check: [],
+      final_take: finalTake,
+      matrix_performance: null,
+      matrix_value: null,
+      matrix_ease_of_use: null,
+      matrix_portability: null,
+      matrix_compatibility: null,
+      matrix_long_term_suitability: null,
+      research_basis: null,
+      research_sources: [],
+      last_reviewed_at: null,
+      is_out_of_stock: Boolean(productData.is_out_of_stock),
       pros: strengths,
       cons: tradeOffs,
     };
@@ -746,14 +766,19 @@ export async function updateProductAction(
 
     const existingNormalized = existingRow ? normalizeDbProduct(existingRow) : getStoredProductById(id);
 
+    const cleanStr = (val?: string | null): string | null => {
+      if (!val) return null;
+      const trimmed = stripProductMeta(val).trim();
+      return trimmed.length > 0 ? trimmed : null;
+    };
+
     const fullUpdate: Record<string, any> = {
       updated_at: new Date().toISOString(),
     };
-    if (productData.title !== undefined) fullUpdate.title = stripProductMeta(productData.title);
+    if (productData.title !== undefined) fullUpdate.title = stripProductMeta(productData.title).trim();
     if (productData.slug !== undefined) fullUpdate.slug = productData.slug.trim();
-    if (productData.description !== undefined) fullUpdate.description = stripProductMeta(productData.description);
     if (productData.category !== undefined) fullUpdate.category = normalizeCategoryName(productData.category, productData.title, id);
-    if (productData.badge !== undefined) fullUpdate.badge = stripProductMeta(productData.badge);
+    if (productData.badge !== undefined) fullUpdate.badge = cleanStr(productData.badge);
     if (productData.image_url !== undefined) fullUpdate.image_url = productData.image_url.trim();
 
     const updatedRetailerUrl = productData.retailer_url !== undefined
@@ -769,45 +794,55 @@ export async function updateProductAction(
       fullUpdate.retailer_domain = productData.retailer_domain;
     }
 
-    if (productData.quick_take !== undefined) fullUpdate.quick_take = stripProductMeta(productData.quick_take);
-    if (productData.key_specs !== undefined) fullUpdate.key_specs = productData.key_specs;
-    if (productData.good_for !== undefined) fullUpdate.good_for = toCleanStringArray(productData.good_for);
-    if (productData.skip_if !== undefined) fullUpdate.skip_if = toCleanStringArray(productData.skip_if);
-    if (productData.what_to_check !== undefined) fullUpdate.what_to_check = toCleanStringArray(productData.what_to_check);
-    if (productData.matrix_performance !== undefined) fullUpdate.matrix_performance = productData.matrix_performance;
-    if (productData.matrix_value !== undefined) fullUpdate.matrix_value = productData.matrix_value;
-    if (productData.matrix_ease_of_use !== undefined) fullUpdate.matrix_ease_of_use = productData.matrix_ease_of_use;
-    if (productData.matrix_portability !== undefined) fullUpdate.matrix_portability = productData.matrix_portability;
-    if (productData.matrix_compatibility !== undefined) fullUpdate.matrix_compatibility = productData.matrix_compatibility;
-    if (productData.matrix_long_term_suitability !== undefined) fullUpdate.matrix_long_term_suitability = productData.matrix_long_term_suitability;
+    if (productData.quick_take !== undefined) {
+      const qt = cleanStr(productData.quick_take);
+      fullUpdate.quick_take = qt;
+      if (qt) fullUpdate.description = qt;
+    } else if (productData.description !== undefined) {
+      fullUpdate.description = stripProductMeta(productData.description).trim();
+    }
+
+    if (productData.key_specs !== undefined) {
+      fullUpdate.key_specs = Array.isArray(productData.key_specs)
+        ? productData.key_specs.map((s) => (typeof s === "string" ? s.trim() : s)).filter(Boolean)
+        : productData.key_specs;
+    }
+    if (productData.good_for !== undefined) {
+      fullUpdate.good_for = toCleanStringArray(productData.good_for).map((g) => g.trim()).filter(Boolean);
+    }
+    if (productData.skip_if !== undefined) {
+      fullUpdate.skip_if = toCleanStringArray(productData.skip_if).map((s) => s.trim()).filter(Boolean);
+    }
     if (productData.strengths !== undefined) {
-      const cleanStrengths = productData.strengths.map((s) => stripProductMeta(String(s)));
+      const cleanStrengths = productData.strengths.map((s) => stripProductMeta(String(s)).trim()).filter(Boolean);
       fullUpdate.strengths = cleanStrengths;
       fullUpdate.pros = cleanStrengths;
     }
     if (productData.trade_offs !== undefined) {
-      const cleanTradeOffs = productData.trade_offs.map((t) => stripProductMeta(String(t)));
+      const cleanTradeOffs = productData.trade_offs.map((t) => stripProductMeta(String(t)).trim()).filter(Boolean);
       fullUpdate.trade_offs = cleanTradeOffs;
       fullUpdate.cons = cleanTradeOffs;
     }
     if (productData.final_take !== undefined) {
-      fullUpdate.final_take = stripProductMeta(productData.final_take);
+      fullUpdate.final_take = cleanStr(productData.final_take);
     }
-    if (productData.research_basis !== undefined) fullUpdate.research_basis = stripProductMeta(productData.research_basis);
-    if (productData.research_sources !== undefined) fullUpdate.research_sources = productData.research_sources;
-    if (productData.last_reviewed_at !== undefined) fullUpdate.last_reviewed_at = productData.last_reviewed_at;
 
-    const updatedYoutubeUrl = productData.youtube_url !== undefined
+    const updatedMediaUrl = productData.youtube_url !== undefined
       ? productData.youtube_url
       : (productData as any).youtubeUrl !== undefined
       ? (productData as any).youtubeUrl
-      : productData.youtube_url !== undefined
-      ? productData.youtube_url
+      : productData.video_url !== undefined
+      ? productData.video_url
       : undefined;
 
-    if (updatedYoutubeUrl !== undefined) {
-      fullUpdate.youtube_url = updatedYoutubeUrl ? updatedYoutubeUrl.trim() : null;
-      fullUpdate.youtube_url = updatedYoutubeUrl ? updatedYoutubeUrl.trim() : null;
+    if (updatedMediaUrl !== undefined) {
+      const cleaned = cleanStr(updatedMediaUrl);
+      fullUpdate.youtube_url = cleaned;
+      fullUpdate.video_url = cleaned;
+    }
+
+    if (productData.is_out_of_stock !== undefined) {
+      fullUpdate.is_out_of_stock = Boolean(productData.is_out_of_stock);
     }
 
     let updatedRow: any = null;
