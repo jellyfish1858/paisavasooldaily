@@ -1034,6 +1034,8 @@ test('Category Tabs and BeautyTrustShowcase data integrity', async () => {
   assert.ok(showcaseContent.includes('Out-of-Stock Seller Protection'), 'Must feature Pillar 1');
   assert.ok(showcaseContent.includes('For Every Routine (Men &amp; Women)'), 'Must feature Pillar 2');
   assert.ok(showcaseContent.includes('Your Monthly Restock &amp; Upgrade Hub'), 'Must feature Pillar 3');
+  assert.ok(showcaseContent.includes('Most-Used Daily Lifestyle Favorites (Females &amp; Males)'), 'Must feature daily lifestyle social-proof pillar');
+  assert.ok(showcaseContent.includes('Curated from what most women and men actually use in their daily beauty &amp; fashion lifestyle'), 'Must feature daily lifestyle tagline');
 });
 
 test('BeautyWelcomePopup once-per-visitor localStorage key and component integrity', async () => {
@@ -1065,6 +1067,8 @@ test('BeautyWelcomePopup once-per-visitor localStorage key and component integri
   assert.ok(popupContent.includes('smartchoice:select-tab'), 'Must dispatch select-tab custom event');
   assert.ok(popupContent.includes('FOR MEN &amp; WOMEN'), 'Must emphasize inclusive gender-neutral copy');
   assert.ok(popupContent.includes('Zero-Adulteration Seller Links'), 'Must feature zero-adulteration highlight');
+  assert.ok(popupContent.includes('The everyday beauty, grooming &amp; fashion staples most women and men actually use in their daily lifestyle'), 'Must feature daily lifestyle hook in welcome popup');
+  assert.ok(popupContent.includes('Most-Used Daily Lifestyle Staples'), 'Must feature daily lifestyle staple bullet in welcome popup');
 });
 
 

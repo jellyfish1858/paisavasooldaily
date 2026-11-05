@@ -79,7 +79,7 @@ export default function BeautyWelcomePopup() {
           type="button"
           onClick={handleDismiss}
           aria-label="Close welcome modal"
-          className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+          className="absolute top-4 right-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
         >
           ✕
         </button>
@@ -99,13 +99,21 @@ export default function BeautyWelcomePopup() {
             Discover Our Verified Beauty, Grooming &amp; Fashion Hub
           </h2>
 
-          {/* Persuasive Anti-Adulteration Hook */}
+          {/* Persuasive Hook with Daily Lifestyle Focus */}
           <p className="text-slate-300 text-xs sm:text-sm leading-relaxed mb-6 font-body">
-            When marketplace brand stores go out of stock, checkout often <strong>silently routes orders to unverified third-party sellers</strong> shipping adulterated or fake formulas. On SmartChoice, every skincare, haircare, grooming, and style link is strictly verified to point only to 100% legitimate, original brand stock.
+            The everyday beauty, grooming &amp; fashion staples most women and men actually use in their daily lifestyle — linked strictly to 100% original, non-adulterated stock. When marketplace brand stores go out of stock, checkout often <strong>silently routes orders to unverified third-party sellers</strong> shipping adulterated or fake formulas. On SmartChoice, every link is strictly verified to point only to authorized brand inventory.
           </p>
 
-          {/* 3 Quick Visual Highlights */}
+          {/* Quick Visual Highlights */}
           <div className="space-y-3 mb-6 bg-slate-950/60 border border-white/10 rounded-2xl p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-base shrink-0">💎</span>
+              <div>
+                <p className="text-xs font-bold text-white">Most-Used Daily Lifestyle Staples</p>
+                <p className="text-[11px] text-slate-400">Proven essentials women and men genuinely rely on every single day.</p>
+              </div>
+            </div>
+
             <div className="flex items-start gap-3">
               <span className="text-base shrink-0">🛡️</span>
               <div>
@@ -117,7 +125,7 @@ export default function BeautyWelcomePopup() {
             <div className="flex items-start gap-3">
               <span className="text-base shrink-0">✨</span>
               <div>
-                <p className="text-xs font-bold text-white">Curated for Everyone</p>
+                <p className="text-xs font-bold text-white">Curated for Everyone (Men &amp; Women)</p>
                 <p className="text-[11px] text-slate-400">Bath bars, barrier skincare, beard care, grooming &amp; daily style essentials.</p>
               </div>
             </div>

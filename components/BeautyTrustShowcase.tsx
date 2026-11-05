@@ -16,22 +16,41 @@ export default function BeautyTrustShowcase({
         <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-purple-500/20 blur-3xl" />
 
         <div className="relative z-10">
-          {/* Top Trust Badge Pill */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-pink-500/40 bg-pink-500/10 px-3.5 py-1 text-xs font-mono font-bold tracking-wide text-pink-300 mb-4 shadow-sm">
-            <span>🛡️</span>
-            <span>VERIFIED AUTHENTIC SUPPLY CHAIN • ZERO COUNTERFEIT RISK</span>
+          {/* Top Trust Badge Pills */}
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-pink-500/40 bg-pink-500/10 px-3.5 py-1 text-xs font-mono font-bold tracking-wide text-pink-300 shadow-sm">
+              <span>🛡️</span>
+              <span>VERIFIED AUTHENTIC SUPPLY CHAIN • ZERO COUNTERFEIT RISK</span>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3.5 py-1 text-xs font-mono font-bold tracking-wide text-amber-300 shadow-sm">
+              <span>⭐</span>
+              <span>MOST-USED DAILY LIFESTYLE PICKS</span>
+            </div>
           </div>
 
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-snug mb-3">
             100% Legit Links Only — <span className="bg-clip-text text-transparent bg-gradient-to-r from-pink-300 via-rose-200 to-amber-200">Zero Adulterated or Counterfeit Stock</span>
           </h2>
           <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-3xl mb-8">
-            Why buy beauty, grooming, and skincare through SmartChoice? We eliminate the biggest hidden risk on mega-marketplaces: silent seller hijacking and counterfeit formula substitution.
+            Curated from what most women and men actually use in their daily beauty &amp; fashion lifestyle. We eliminate the hidden hazard on mega-marketplaces: silent seller hijacking, expired stock, and fake formulas.
           </p>
 
-          {/* 3 Core Trust Pillars Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Pillar 1 */}
+          {/* 4 Core Trust & Social-Proof Pillars Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {/* Pillar 1: Most-Used Daily Lifestyle Favorites */}
+            <div className="rounded-xl border border-amber-500/20 bg-slate-900/80 p-5 shadow-lg transition-transform hover:-translate-y-0.5">
+              <div className="w-10 h-10 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xl mb-3 text-amber-300 shadow-sm">
+                💎
+              </div>
+              <h3 className="text-base font-bold text-white mb-2 tracking-tight">
+                Most-Used Daily Lifestyle Favorites (Females &amp; Males)
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                We don&apos;t list random or obscure experiments. Our recommendations are strictly the proven, high-demand beauty, skincare, grooming, and fashion staples that most women and men genuinely use every single day in their lifestyle.
+              </p>
+            </div>
+
+            {/* Pillar 2: Out-of-Stock Seller Protection */}
             <div className="rounded-xl border border-white/10 bg-slate-900/80 p-5 shadow-lg transition-transform hover:-translate-y-0.5">
               <div className="w-10 h-10 rounded-lg bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-xl mb-3 text-rose-300 shadow-sm">
                 🛡️
@@ -44,7 +63,7 @@ export default function BeautyTrustShowcase({
               </p>
             </div>
 
-            {/* Pillar 2 */}
+            {/* Pillar 3: For Every Routine */}
             <div className="rounded-xl border border-white/10 bg-slate-900/80 p-5 shadow-lg transition-transform hover:-translate-y-0.5">
               <div className="w-10 h-10 rounded-lg bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-xl mb-3 text-pink-300 shadow-sm">
                 ✨
@@ -57,7 +76,7 @@ export default function BeautyTrustShowcase({
               </p>
             </div>
 
-            {/* Pillar 3 */}
+            {/* Pillar 4: Your Monthly Restock Hub */}
             <div className="rounded-xl border border-white/10 bg-slate-900/80 p-5 shadow-lg transition-transform hover:-translate-y-0.5">
               <div className="w-10 h-10 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-xl mb-3 text-purple-300 shadow-sm">
                 🔄
@@ -73,6 +92,9 @@ export default function BeautyTrustShowcase({
 
           {/* Guarantee Footer Strip */}
           <div className="mt-6 pt-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 font-mono text-[11px] text-slate-400">
+            <span className="flex items-center gap-1.5 text-amber-300 font-semibold">
+              <span className="text-green-400">✓</span> Real Daily Lifestyle Essentials
+            </span>
             <span className="flex items-center gap-1.5 text-pink-300 font-semibold">
               <span className="text-green-400">✓</span> Verified Authorized Sellers Only
             </span>
@@ -100,7 +122,7 @@ export default function BeautyTrustShowcase({
             <button
               type="button"
               onClick={onSwitchToAll}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-mono text-xs uppercase tracking-wider font-bold rounded-lg transition-all shadow-md"
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-mono text-xs uppercase tracking-wider font-bold rounded-lg transition-all shadow-md cursor-pointer"
             >
               ← Browse All Verified Picks
             </button>
@@ -110,4 +132,3 @@ export default function BeautyTrustShowcase({
     </div>
   );
 }
-
