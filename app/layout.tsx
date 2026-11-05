@@ -16,11 +16,20 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "SmartChoice Storefront — Curated Product Picks",
+    default: "SmartChoice Storefront — Curated Product Picks & Anti-Regret Research",
     template: "%s | SmartChoice Storefront",
   },
   description:
-    "Unbiased editorial product research, comprehensive Anti-Regret matrix analysis, and curated recommendations across all categories.",
+    "Unbiased editorial product research, comprehensive Anti-Regret matrix analysis, and verified recommendations across Beauty, Grooming & Fashion lifestyle for men and women, plus Tech & Accessories in India.",
+  keywords: [
+    "SmartChoice Storefront",
+    "Verified Beauty and Fashion picks",
+    "Zero-adulteration seller guarantee India",
+    "Daily skincare grooming lifestyle for women and men",
+    "Electronics and tech accessories India",
+    "Anti-regret buying guides",
+    "Best value INR",
+  ],
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",
@@ -30,12 +39,12 @@ export const metadata: Metadata = {
     google: "OBLUySHXK_7EiNkxlTYKoSKvj12e2zyk_VrxoKNro7k",
   },
   openGraph: {
-    title: "SmartChoice Storefront — Curated Product Picks",
+    title: "SmartChoice Storefront — Curated Product Picks & Anti-Regret Research",
     description:
-      "Unbiased editorial product research, comprehensive Anti-Regret matrix analysis, and curated product recommendations.",
+      "Unbiased editorial product research, comprehensive Anti-Regret matrix analysis, and verified recommendations across Beauty, Fashion, Grooming, and Tech Accessories in India.",
     url: getSiteUrl(),
     siteName: "SmartChoice Storefront",
-    locale: "en_US",
+    locale: "en_IN",
     type: "website",
     images: [
       {
@@ -48,9 +57,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "SmartChoice Storefront — Curated Product Picks",
+    title: "SmartChoice Storefront — Curated Product Picks & Anti-Regret Research",
     description:
-      "Unbiased editorial product research, comprehensive Anti-Regret matrix analysis, and curated product recommendations.",
+      "Unbiased editorial product research, comprehensive Anti-Regret matrix analysis, and verified recommendations across Beauty, Fashion, Grooming, and Tech Accessories in India.",
     images: [`${getSiteUrl()}/og-default.jpg`],
   },
   robots: {

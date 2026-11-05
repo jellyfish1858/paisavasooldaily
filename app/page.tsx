@@ -28,8 +28,14 @@ export default async function StorefrontHome() {
     "@type": "WebSite",
     name: "SmartChoice Storefront",
     url: baseUrl,
+    inLanguage: "en-IN",
     description:
-      "Independent editorial product research, Anti-Regret matrix analysis, and decision support before purchasing.",
+      "Independent editorial product research, Anti-Regret matrix analysis, and verified product recommendations across Beauty & Fashion and Tech & Accessories in India.",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${baseUrl}/?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
   };
 
   const organizationSchema = {
@@ -39,7 +45,19 @@ export default async function StorefrontHome() {
     url: baseUrl,
     logo: `${baseUrl}/brand/logo-full.png`,
     description:
-      "Independent editorial product research, Anti-Regret matrix analysis, and decision support before purchasing across Tech, Travel, and Beauty.",
+      "Independent editorial product research, Anti-Regret matrix analysis, and decision support before purchasing across Tech & Accessories, Travel, and Beauty & Fashion in India.",
+    inLanguage: "en-IN",
+    areaServed: {
+      "@type": "Country",
+      name: "India",
+    },
+    knowsAbout: [
+      "Verified Beauty & Skincare Staples",
+      "Daily Grooming for Men & Women",
+      "Zero-Adulteration Marketplace Seller Link Verification",
+      "Electronics & Tech Accessories",
+      "Anti-Regret Consumer Research",
+    ],
   };
 
   const itemListSchema = {

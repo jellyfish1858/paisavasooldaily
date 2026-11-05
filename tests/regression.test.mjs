@@ -1071,6 +1071,94 @@ test('BeautyWelcomePopup once-per-visitor localStorage key and component integri
   assert.ok(popupContent.includes('Most-Used Daily Lifestyle Staples'), 'Must feature daily lifestyle staple bullet in welcome popup');
 });
 
+test('SEO: Google Product rich snippets include positiveNotes, negativeNotes, additionalProperty, and video', async () => {
+  const { getProductSchema } = await import('../lib/structured-data.ts');
+
+  const mockProduct = {
+    id: 'prod-rich-seo',
+    slug: 'sony-wh-1000xm5',
+    title: 'Sony WH-1000XM5 Wireless Headphones',
+    category: 'Electronics & Tech Accessories',
+    quick_take: 'Exceptional noise canceling with 30-hour battery life.',
+    pros: ['Class-leading noise cancelation', 'Ultra-comfortable memory foam earcups', 'Multipoint Bluetooth'],
+    cons: ['Does not fold compactly', 'Higher initial price point'],
+    keySpecs: ['Battery: 30 hours', 'Weight: 250g', 'Driver: 30mm carbon fiber'],
+    youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    price: 29990,
+    image_url: 'https://example.com/sony.jpg',
+  };
+
+  const schema = getProductSchema(mockProduct, 'https://smartchoice-storefront.smartchoice.workers.dev');
+  assert.ok(schema, 'Product schema must exist');
+  assert.equal(schema['@type'], 'Product');
+
+  // 1. Google Pros rich snippet (positiveNotes)
+  assert.ok(schema.positiveNotes, 'positiveNotes must be populated');
+  assert.equal(schema.positiveNotes['@type'], 'ItemList');
+  assert.equal(schema.positiveNotes.itemListElement.length, 3);
+  assert.equal(schema.positiveNotes.itemListElement[0]['@type'], 'ListItem');
+  assert.equal(schema.positiveNotes.itemListElement[0].position, 1);
+  assert.equal(schema.positiveNotes.itemListElement[0].name, 'Class-leading noise cancelation');
+
+  // 2. Google Cons rich snippet (negativeNotes)
+  assert.ok(schema.negativeNotes, 'negativeNotes must be populated');
+  assert.equal(schema.negativeNotes['@type'], 'ItemList');
+  assert.equal(schema.negativeNotes.itemListElement.length, 2);
+  assert.equal(schema.negativeNotes.itemListElement[0]['@type'], 'ListItem');
+  assert.equal(schema.negativeNotes.itemListElement[0].position, 1);
+  assert.equal(schema.negativeNotes.itemListElement[0].name, 'Does not fold compactly');
+
+  // 3. Key specs additionalProperty (PropertyValue format)
+  assert.ok(Array.isArray(schema.additionalProperty), 'additionalProperty must be an array');
+  assert.equal(schema.additionalProperty.length, 3);
+  assert.equal(schema.additionalProperty[0]['@type'], 'PropertyValue');
+  assert.equal(schema.additionalProperty[0].name, 'Battery');
+  assert.equal(schema.additionalProperty[0].value, '30 hours');
+
+  // 4. VideoObject rich snippet
+  assert.ok(schema.video, 'video object must be populated when videoUrl is provided');
+  assert.equal(schema.video['@type'], 'VideoObject');
+  assert.equal(schema.video.embedUrl, 'https://www.youtube.com/embed/dQw4w9WgXcQ');
+  assert.equal(schema.video.contentUrl, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+});
+
+test('SEO: StorefrontClient category tabs and BeautyTrustShowcase are 100% crawlable by Googlebot', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const storefrontPath = path.resolve(process.cwd(), 'app/StorefrontClient.tsx');
+  const storefrontContent = fs.readFileSync(storefrontPath, 'utf8');
+
+  // Category switcher links must contain crawlable href attributes
+  assert.ok(storefrontContent.includes('href="/?tab=all"'), 'All Picks tab must have crawlable href');
+  assert.ok(storefrontContent.includes('href="/?tab=beauty"'), 'Beauty & Fashion tab must have crawlable href');
+  assert.ok(storefrontContent.includes('href="/?tab=tech"'), 'Tech & Accessories tab must have crawlable href');
+
+  // BeautyTrustShowcase must be kept in DOM for crawlers using sr-only rather than unmounting
+  assert.ok(storefrontContent.includes('data-seo-crawlable="true"'), 'Showcase container must have SEO crawlable marker');
+  assert.ok(storefrontContent.includes('activeTab === "beauty" ? "block" : "sr-only"'), 'Showcase must use sr-only when inactive');
+});
+
+test('SEO: India-localized metadata, keywords, and organization schema', async () => {
+  const { generateHomeMeta } = await import('../lib/seo.ts');
+  const { getOrganizationSchema } = await import('../lib/structured-data.ts');
+
+  // generateHomeMeta
+  const homeMeta = generateHomeMeta();
+  assert.equal(homeMeta.metadata.openGraph?.locale, 'en_IN', 'OpenGraph locale must be en_IN');
+  const keywordsStr = JSON.stringify(homeMeta.metadata.keywords || []);
+  assert.ok(keywordsStr.includes('Beauty'), 'Keywords must include Beauty');
+  assert.ok(keywordsStr.includes('Fashion'), 'Keywords must include Fashion');
+  assert.ok(keywordsStr.includes('Anti-Adulteration'), 'Keywords must include Anti-Adulteration');
+  assert.ok(keywordsStr.includes('India'), 'Keywords must include India');
+
+  // getOrganizationSchema
+  const orgSchema = getOrganizationSchema();
+  assert.equal(orgSchema.areaServed?.['@type'], 'Country');
+  assert.equal(orgSchema.areaServed?.name, 'India');
+  assert.equal(orgSchema.contactPoint?.areaServed, 'IN');
+});
+
+
 
 
 

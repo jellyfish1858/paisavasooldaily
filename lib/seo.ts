@@ -55,10 +55,22 @@ export function generateHomeMeta(customBaseUrl?: string): SeoMetaResult {
   const baseUrl = resolveBaseUrl(customBaseUrl);
   const title = "SmartChoice Storefront — Curated Product Picks & Anti-Regret Research";
   const description =
-    "Independent editorial product research, Anti-Regret matrix analysis, and curated recommendations before buying across Tech, Travel, and Beauty.";
+    "Independent editorial product research, Anti-Regret matrix analysis, and curated recommendations before buying across Verified Beauty, Skincare & Grooming for Men and Women, and Tech Accessories in India.";
   const canonical = baseUrl;
   const ogImage = `${baseUrl}/og-default.jpg`;
   const ogType: "website" = "website";
+
+  const keywords = [
+    "SmartChoice Storefront",
+    "India product reviews",
+    "Verified Beauty and Fashion picks",
+    "Everyday lifestyle skincare and grooming for men and women",
+    "100% original verified non-adulterated seller links",
+    "Anti-Adulteration skincare guarantee",
+    "Electronics and Tech Accessories India",
+    "Anti-Regret buying guides India",
+    "Best value products INR",
+  ];
 
   const twitter = {
     card: "summary_large_image" as const,
@@ -71,6 +83,7 @@ export function generateHomeMeta(customBaseUrl?: string): SeoMetaResult {
     metadataBase: new URL(baseUrl),
     title,
     description,
+    keywords,
     alternates: {
       canonical,
     },
@@ -79,7 +92,7 @@ export function generateHomeMeta(customBaseUrl?: string): SeoMetaResult {
       description,
       url: canonical,
       siteName: "SmartChoice Storefront",
-      locale: "en_US",
+      locale: "en_IN",
       type: ogType,
       images: [
         {
@@ -185,7 +198,7 @@ export function generateProductMeta(
       description,
       url: canonical,
       siteName: "SmartChoice Storefront",
-      locale: "en_US",
+      locale: "en_IN",
       type: ogType,
       images: [
         {
@@ -279,7 +292,7 @@ export function generateCollectionMeta(
       description,
       url: canonical,
       siteName: "SmartChoice Storefront",
-      locale: "en_US",
+      locale: "en_IN",
       type: ogType,
       images: [
         {

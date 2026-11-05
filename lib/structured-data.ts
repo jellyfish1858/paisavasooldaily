@@ -45,19 +45,26 @@ export function getOrganizationSchema(customBaseUrl?: string) {
     url: baseUrl,
     logo: `${baseUrl}/brand/logo-full.png`,
     description:
-      "Independent editorial product research, Anti-Regret matrix analysis, and curated recommendations before buying.",
+      "Independent editorial product research, Anti-Regret matrix analysis, and curated recommendations before buying across Tech, Travel, and Beauty & Fashion in India.",
+    areaServed: {
+      "@type": "Country",
+      name: "India",
+    },
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer service",
       email: "hello@smartchoice.com",
       url: `${baseUrl}/privacy-policy`,
+      areaServed: "IN",
+      availableLanguage: ["en", "hi"],
     },
     sameAs: [],
   };
 }
 
 /**
- * Returns Product JSON-LD schema (name, description, image, brand, offers, aggregateRating).
+ * Returns Product JSON-LD schema (name, description, image, brand, offers, aggregateRating,
+ * positiveNotes, negativeNotes, additionalProperty, video).
  */
 export function getProductSchema(product: any, customBaseUrl?: string) {
   const baseUrl = resolveBaseUrl(customBaseUrl);
@@ -85,7 +92,87 @@ export function getProductSchema(product: any, customBaseUrl?: string) {
   const price = extractNumericPrice(product) || 999;
   const isOutOfStock = Boolean(product.is_out_of_stock);
 
-  return {
+  // Extract Pros (Verified Strengths) for Google Pros & Cons Rich Snippets
+  const rawPros: any[] = Array.isArray(product.pros)
+    ? product.pros
+    : Array.isArray(product.strengths)
+    ? product.strengths
+    : Array.isArray(product.reasons_to_buy)
+    ? product.reasons_to_buy
+    : [];
+
+  const prosList = rawPros
+    .map((p) => cleanString(typeof p === "string" ? p : p?.name || String(p)))
+    .filter(Boolean);
+
+  // Extract Cons (Trade-offs & Limitations) for Google Pros & Cons Rich Snippets
+  const rawCons: any[] = Array.isArray(product.cons)
+    ? product.cons
+    : Array.isArray(product.trade_offs)
+    ? product.trade_offs
+    : Array.isArray(product.reasons_not_to_buy)
+    ? product.reasons_not_to_buy
+    : [];
+
+  const consList = rawCons
+    .map((c) => cleanString(typeof c === "string" ? c : c?.name || String(c)))
+    .filter(Boolean);
+
+  // Extract Key Specs for Google additionalProperty (PropertyValue)
+  const rawSpecs: any = product.keySpecs || product.key_specs;
+  let specEntries: { name: string; value: string }[] = [];
+
+  if (Array.isArray(rawSpecs)) {
+    specEntries = rawSpecs
+      .map((item) => {
+        const str = cleanString(String(item));
+        if (!str) return null;
+        const colonIdx = str.indexOf(":");
+        if (colonIdx > 0) {
+          return {
+            name: str.slice(0, colonIdx).trim(),
+            value: str.slice(colonIdx + 1).trim(),
+          };
+        }
+        return { name: "Specification", value: str };
+      })
+      .filter((s): s is { name: string; value: string } => Boolean(s && s.name && s.value));
+  } else if (typeof rawSpecs === "object" && rawSpecs !== null) {
+    specEntries = Object.entries(rawSpecs)
+      .map(([k, v]) => ({
+        name: cleanString(k),
+        value: cleanString(String(v)),
+      }))
+      .filter((s) => Boolean(s.name && s.value));
+  }
+
+  // Extract Universal Media URL (YouTube or Instagram) for Google VideoObject
+  const rawVideoUrl = cleanString(
+    product.youtubeUrl || product.youtube_url || product.video_url
+  );
+  let videoObject: any = undefined;
+
+  if (rawVideoUrl) {
+    let embedUrl = rawVideoUrl;
+    const ytMatch = rawVideoUrl.match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    );
+    if (ytMatch && ytMatch[1]) {
+      embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}`;
+    }
+
+    videoObject = {
+      "@type": "VideoObject",
+      name: `${name} — Verified Video Overview & Review`,
+      description: `Watch verified performance, hands-on review, and visual features of ${name}.`,
+      thumbnailUrl: [image],
+      uploadDate: "2026-01-01T00:00:00Z",
+      contentUrl: rawVideoUrl,
+      embedUrl,
+    };
+  }
+
+  const schema: any = {
     "@context": "https://schema.org",
     "@type": "Product",
     name,
@@ -119,6 +206,45 @@ export function getProductSchema(product: any, customBaseUrl?: string) {
       worstRating: "1",
     },
   };
+
+  // Google Pros & Cons Rich Snippet (ItemList format)
+  if (prosList.length > 0) {
+    schema.positiveNotes = {
+      "@type": "ItemList",
+      itemListElement: prosList.map((pro, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: pro,
+      })),
+    };
+  }
+
+  if (consList.length > 0) {
+    schema.negativeNotes = {
+      "@type": "ItemList",
+      itemListElement: consList.map((con, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: con,
+      })),
+    };
+  }
+
+  // Key Specifications PropertyValue format
+  if (specEntries.length > 0) {
+    schema.additionalProperty = specEntries.map((spec) => ({
+      "@type": "PropertyValue",
+      name: spec.name,
+      value: spec.value,
+    }));
+  }
+
+  // Optional VideoObject
+  if (videoObject) {
+    schema.video = videoObject;
+  }
+
+  return schema;
 }
 
 /**

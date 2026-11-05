@@ -317,9 +317,13 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
           <div className="mb-10 flex flex-col items-center">
             <div className="inline-flex p-1.5 rounded-2xl bg-slate-900/90 border border-white/10 backdrop-blur shadow-2xl gap-1.5 max-w-full overflow-x-auto">
               {/* Tab 1: All Picks */}
-              <button
-                type="button"
-                onClick={() => handleTabChange("all")}
+              <Link
+                href="/?tab=all"
+                scroll={false}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleTabChange("all");
+                }}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-mono text-xs uppercase tracking-wider font-bold transition-all duration-200 cursor-pointer whitespace-nowrap ${activeTab === "all"
                     ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30 border border-white/20"
                     : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
@@ -335,12 +339,16 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
                 >
                   {allCount}
                 </span>
-              </button>
+              </Link>
 
               {/* Tab 2: Beauty & Fashion */}
-              <button
-                type="button"
-                onClick={() => handleTabChange("beauty")}
+              <Link
+                href="/?tab=beauty"
+                scroll={false}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleTabChange("beauty");
+                }}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-mono text-xs uppercase tracking-wider font-bold transition-all duration-200 cursor-pointer whitespace-nowrap ${activeTab === "beauty"
                     ? "bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 text-white shadow-lg shadow-pink-600/30 border border-white/20"
                     : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
@@ -356,12 +364,16 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
                 >
                   {beautyCount}
                 </span>
-              </button>
+              </Link>
 
               {/* Tab 3: Tech & Accessories */}
-              <button
-                type="button"
-                onClick={() => handleTabChange("tech")}
+              <Link
+                href="/?tab=tech"
+                scroll={false}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleTabChange("tech");
+                }}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-mono text-xs uppercase tracking-wider font-bold transition-all duration-200 cursor-pointer whitespace-nowrap ${activeTab === "tech"
                     ? "bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-600/30 border border-white/20"
                     : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
@@ -377,17 +389,20 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
                 >
                   {techCount}
                 </span>
-              </button>
+              </Link>
             </div>
           </div>
 
-          {/* High-conversion Anti-Adulteration & Routine Guarantee Banner in Beauty & Fashion Tab */}
-          {activeTab === "beauty" && (
+          {/* High-conversion Anti-Adulteration & Routine Guarantee Banner in Beauty & Fashion Tab (100% Crawlable by Googlebot) */}
+          <div
+            className={activeTab === "beauty" ? "block" : "sr-only"}
+            data-seo-crawlable="true"
+          >
             <BeautyTrustShowcase
               onSwitchToAll={() => handleTabChange("all")}
-              productCount={filteredProducts.length}
+              productCount={beautyCount}
             />
-          )}
+          </div>
 
           {/* Section Header */}
           <div className="mb-10 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-white/10 pb-6">
