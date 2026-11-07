@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { INSTAGRAM_URL, INSTAGRAM_HANDLE } from "./social.ts";
+
+export { INSTAGRAM_URL, INSTAGRAM_HANDLE };
 
 function resolveBaseUrl(customUrl?: string): string {
   if (customUrl && typeof customUrl === "string" && customUrl.trim()) {

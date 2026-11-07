@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Navbar from "@/components/Navbar";
 import BeautyWelcomePopup from "@/components/BeautyWelcomePopup";
+import InstagramFollowCard from "@/components/InstagramFollowCard";
 import Link from "next/link";
 import Image from "next/image";
 import { getSiteUrl } from "@/config/site";
@@ -176,6 +177,7 @@ export default function RootLayout({
                 <a href="mailto:hello@smartchoice.com" className="text-blue-400 hover:text-blue-300 transition-colors text-sm">
                   hello@smartchoice.com
                 </a>
+                <InstagramFollowCard />
               </div>
             </div>
 

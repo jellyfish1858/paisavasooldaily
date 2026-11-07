@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { fetchProductsAction } from "@/app/secure-admin-panel/actions";
 import { getSiteUrl } from "@/config/site";
-import { generateHomeMeta } from "@/lib/seo";
+import { generateHomeMeta, INSTAGRAM_URL } from "@/lib/seo";
 import { getOrganizationSchema } from "@/lib/structured-data";
 import StorefrontClient from "./StorefrontClient";
 import type { DbProduct } from "@/utils/supabase/types";
@@ -58,6 +58,7 @@ export default async function StorefrontHome() {
       "Electronics & Tech Accessories",
       "Anti-Regret Consumer Research",
     ],
+    sameAs: [INSTAGRAM_URL],
   };
 
   const itemListSchema = {

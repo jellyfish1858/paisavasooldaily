@@ -12,6 +12,7 @@ import { getProductSchema } from '@/lib/structured-data';
 import FloatingCTA from '@/components/FloatingCTA';
 import ProductDetailCTA from '@/components/ProductDetailCTA';
 import ProductMedia from '@/components/ProductMedia';
+import InstagramFollowCard from '@/components/InstagramFollowCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -448,6 +449,7 @@ export default async function ProductDetailPage({
                 <a href="mailto:hello@smartchoice.com" className="text-blue-400 hover:text-blue-300 transition-colors text-sm">
                   hello@smartchoice.com
                 </a>
+                <InstagramFollowCard />
               </div>
             </div>
 

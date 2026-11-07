@@ -1,3 +1,5 @@
+import { INSTAGRAM_URL } from "./social.ts";
+
 function resolveBaseUrl(customUrl?: string): string {
   if (customUrl && typeof customUrl === "string" && customUrl.trim()) {
     return customUrl.trim().replace(/\/+$/, "");
@@ -58,7 +60,7 @@ export function getOrganizationSchema(customBaseUrl?: string) {
       areaServed: "IN",
       availableLanguage: ["en", "hi"],
     },
-    sameAs: [],
+    sameAs: [INSTAGRAM_URL],
   };
 }
 

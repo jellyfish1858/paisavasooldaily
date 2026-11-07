@@ -1202,6 +1202,47 @@ test('Admin Schema-Resilience: is_out_of_stock removed from forms and schema-cac
   assert.equal(extractUnmappedSchemaColumn(undefined), null);
 });
 
+test('Footer Instagram support link and Organization sameAs schema integrity', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const { INSTAGRAM_URL, INSTAGRAM_HANDLE } = await import('../lib/social.ts');
+  const { getOrganizationSchema } = await import('../lib/structured-data.ts');
+
+  // 1. Social constants integrity
+  assert.equal(INSTAGRAM_URL, 'https://www.instagram.com/smartchoice_storefront_/');
+  assert.equal(INSTAGRAM_HANDLE, '@smartchoice_storefront_');
+
+  // 2. InstagramFollowCard component markup
+  const cardPath = path.resolve(process.cwd(), 'components/InstagramFollowCard.tsx');
+  assert.ok(fs.existsSync(cardPath), 'InstagramFollowCard component file must exist');
+  const cardContent = fs.readFileSync(cardPath, 'utf8');
+
+  assert.ok(cardContent.includes('target="_blank"'), 'Must target _blank for new tab');
+  assert.ok(cardContent.includes('rel="noopener noreferrer me"'), 'Must include noopener and noreferrer attributes');
+  assert.ok(cardContent.includes('Follow us on Instagram'), 'Must include text "Follow us on Instagram"');
+  assert.ok(cardContent.includes('{INSTAGRAM_HANDLE}'), 'Must render Instagram handle');
+  assert.ok(cardContent.includes('aria-label='), 'Must provide accessible aria-label');
+  assert.ok(cardContent.includes('Support us for daily verified picks'), 'Must include support caption');
+
+  // 3. Layout and Product page footer placement
+  const layoutPath = path.resolve(process.cwd(), 'app/layout.tsx');
+  const layoutContent = fs.readFileSync(layoutPath, 'utf8');
+  assert.ok(layoutContent.includes('<InstagramFollowCard />'), 'app/layout.tsx footer must render InstagramFollowCard');
+
+  const productPagePath = path.resolve(process.cwd(), 'app/product/[id]/page.tsx');
+  const productPageContent = fs.readFileSync(productPagePath, 'utf8');
+  assert.ok(productPageContent.includes('<InstagramFollowCard />'), 'app/product/[id]/page.tsx footer must render InstagramFollowCard');
+
+  // 4. Organization schema sameAs array includes Instagram URL
+  const orgSchema = getOrganizationSchema();
+  assert.ok(Array.isArray(orgSchema.sameAs), 'Organization schema sameAs must be an array');
+  assert.ok(
+    orgSchema.sameAs.includes('https://www.instagram.com/smartchoice_storefront_/'),
+    'Organization schema sameAs must include Instagram URL'
+  );
+});
+
+
 
 
 
