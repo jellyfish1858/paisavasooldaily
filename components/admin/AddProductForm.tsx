@@ -37,7 +37,6 @@ const emptyForm = {
   imageUrl: "",
   retailerUrl: "",
   mediaUrl: "",
-  isOutOfStock: false,
 
   // Decision Information (matches Product Detail Page)
   quickTake: "",
@@ -182,7 +181,6 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
       retailer_url: form.retailerUrl.trim(),
       retailer_domain: extractRetailerDomain(form.retailerUrl),
       amazon_url: form.retailerUrl.trim(),
-      is_out_of_stock: form.isOutOfStock,
 
       // Decision Information (matches Product Detail Page)
       quick_take: quickTakeText || undefined,
@@ -193,19 +191,7 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
       cons: tradeOffsList,
       good_for: parseLines(form.goodForRaw),
       skip_if: parseLines(form.skipIfRaw),
-      what_to_check: [],
       final_take: finalTakeText || undefined,
-
-      // Zero extra/unused fields
-      matrix_performance: null,
-      matrix_value: null,
-      matrix_ease_of_use: null,
-      matrix_portability: null,
-      matrix_compatibility: null,
-      matrix_long_term_suitability: null,
-      research_basis: undefined,
-      research_sources: [],
-      last_reviewed_at: null,
     };
 
     try {
@@ -307,41 +293,22 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
             </Field>
           </div>
 
-          {/* Badge & Stock Status */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 items-center">
-            <div>
-              <Field label="Badge Label (Optional)" hint="Featured pick tag">
-                <input
-                  list="badge-options"
-                  placeholder="Best Overall, Best Value, Editor's Choice..."
-                  value={form.badge}
-                  onChange={update("badge")}
-                  className={inputClasses}
-                />
-              </Field>
-              <datalist id="badge-options">
-                {BADGE_PRESETS.map((b) => (
-                  <option key={b} value={b} />
-                ))}
-              </datalist>
-            </div>
-
-            <label className="flex items-center gap-3 border-2 border-line bg-panel p-3.5 cursor-pointer sm:mt-5">
+          {/* Badge */}
+          <div>
+            <Field label="Badge Label (Optional)" hint="Featured pick tag (e.g. Best Value, Top Pick)">
               <input
-                type="checkbox"
-                checked={form.isOutOfStock}
-                onChange={(e) => setForm((f) => ({ ...f, isOutOfStock: e.target.checked }))}
-                className="h-4 w-4 rounded border-line text-ink focus:ring-accent"
+                list="badge-options"
+                placeholder="Best Overall, Best Value, Editor's Choice..."
+                value={form.badge}
+                onChange={update("badge")}
+                className={inputClasses}
               />
-              <div>
-                <span className="font-mono text-xs uppercase tracking-wider font-bold block text-ink">
-                  Mark as Out of Stock
-                </span>
-                <span className="font-mono text-[10px] text-muted">
-                  Displays stock warning and disables checkout CTA
-                </span>
-              </div>
-            </label>
+            </Field>
+            <datalist id="badge-options">
+              {BADGE_PRESETS.map((b) => (
+                <option key={b} value={b} />
+              ))}
+            </datalist>
           </div>
 
           {/* Image URL & Retailer Buy URL */}

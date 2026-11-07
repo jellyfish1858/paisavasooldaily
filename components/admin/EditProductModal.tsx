@@ -67,7 +67,6 @@ export default function EditProductModal({
   const [retailerUrl, setRetailerUrl] = useState(
     product.retailer_url || product.amazon_url || ""
   );
-  const [isOutOfStock, setIsOutOfStock] = useState(Boolean(product.is_out_of_stock));
 
   // Decision Information
   const [quickTake, setQuickTake] = useState(
@@ -218,7 +217,6 @@ export default function EditProductModal({
       retailer_url: retailerUrl.trim(),
       retailer_domain: extractRetailerDomain(retailerUrl),
       amazon_url: retailerUrl.trim(),
-      is_out_of_stock: isOutOfStock,
 
       quick_take: quickTakeText || undefined,
       key_specs: serializedKeySpecs,
@@ -228,7 +226,6 @@ export default function EditProductModal({
       cons: tradeOffsList,
       good_for: parseLines(goodForRaw),
       skip_if: parseLines(skipIfRaw),
-      what_to_check: [],
       final_take: finalTakeText || undefined,
     };
 
@@ -346,43 +343,24 @@ export default function EditProductModal({
               </label>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 items-center">
-              <div>
-                <label className="block">
-                  <span className="mb-1 block font-mono text-[11px] uppercase tracking-widest font-bold text-ink">
-                    Badge Label (Optional)
-                  </span>
-                  <input
-                    list="edit-badge-options"
-                    value={badge}
-                    onChange={(e) => setBadge(e.target.value)}
-                    className={inputClasses}
-                    placeholder="Best Value, Editor's Choice..."
-                  />
-                </label>
-                <datalist id="edit-badge-options">
-                  {BADGE_PRESETS.map((b) => (
-                    <option key={b} value={b} />
-                  ))}
-                </datalist>
-              </div>
-
-              <label className="flex items-center gap-3 border-2 border-line bg-panel p-3 cursor-pointer sm:mt-5">
+            <div>
+              <label className="block">
+                <span className="mb-1 block font-mono text-[11px] uppercase tracking-widest font-bold text-ink">
+                  Badge Label (Optional)
+                </span>
                 <input
-                  type="checkbox"
-                  checked={isOutOfStock}
-                  onChange={(e) => setIsOutOfStock(e.target.checked)}
-                  className="h-4 w-4 rounded border-line text-ink focus:ring-accent"
+                  list="edit-badge-options"
+                  value={badge}
+                  onChange={(e) => setBadge(e.target.value)}
+                  className={inputClasses}
+                  placeholder="Best Value, Editor's Choice..."
                 />
-                <div>
-                  <span className="font-mono text-xs uppercase tracking-wider font-bold block text-ink">
-                    Mark as Out of Stock
-                  </span>
-                  <span className="font-mono text-[10px] text-muted">
-                    Displays stock alert and disables checkout CTA
-                  </span>
-                </div>
               </label>
+              <datalist id="edit-badge-options">
+                {BADGE_PRESETS.map((b) => (
+                  <option key={b} value={b} />
+                ))}
+              </datalist>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

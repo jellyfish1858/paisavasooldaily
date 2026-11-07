@@ -124,3 +124,13 @@ export function getYouTubeEmbedUrl(url?: string | null): string | null {
  */
 export const BEAUTY_WELCOME_POPUP_STORAGE_KEY = "smartchoice_beauty_welcome_seen_v1";
 
+/**
+ * Extracts unmapped column names reported by PostgREST / Supabase schema cache errors.
+ * e.g. "Could not find the 'is_out_of_stock' column of 'products' in the schema cache"
+ */
+export function extractUnmappedSchemaColumn(errorMessage?: string | null): string | null {
+  if (!errorMessage || typeof errorMessage !== "string") return null;
+  const match = errorMessage.match(/Could not find the '([^']+)' column of 'products' in the schema cache/i);
+  return match && match[1] ? match[1] : null;
+}
+

@@ -31,6 +31,9 @@ import {
   type AnalyticsSummary,
   type ProductClickData,
 } from "@/lib/analytics";
+import { extractUnmappedSchemaColumn } from "@/lib/validation";
+
+export { extractUnmappedSchemaColumn };
 
 function stripProductMeta(text?: string | null): string {
   if (!text || typeof text !== "string") return "";
@@ -651,6 +654,9 @@ export async function postProduct(productData: NewDbProduct): Promise<{ success:
           .filter(Boolean)
       : productData.key_specs || [];
 
+    const retailerUrl = (productData.retailer_url || productData.amazon_url || "").trim();
+    const retailerDomain = productData.retailer_domain || extractRetailerDomain(retailerUrl);
+
     const fullPayload: Record<string, any> = {
       ...(productId ? { id: productId } : {}),
       title: stripProductMeta(productData.title || "").trim(),
@@ -660,62 +666,70 @@ export async function postProduct(productData: NewDbProduct): Promise<{ success:
       badge: cleanStr(productData.badge),
       image_url: (productData.image_url || "").trim(),
       youtube_url: mediaUrl,
-      video_url: mediaUrl,
-      retailer_url: (productData.retailer_url || productData.amazon_url || "").trim(),
-      retailer_domain: productData.retailer_domain || extractRetailerDomain(productData.retailer_url || productData.amazon_url || ""),
+      retailer_url: retailerUrl,
+      retailer_domain: retailerDomain,
+      amazon_url: retailerUrl,
       quick_take: quickTake,
       key_specs: cleanedSpecs,
       strengths,
       trade_offs: tradeOffs,
-      good_for: toCleanStringArray(productData.good_for).map((s) => s.trim()).filter(Boolean),
-      skip_if: toCleanStringArray(productData.skip_if).map((s) => s.trim()).filter(Boolean),
-      what_to_check: [],
-      final_take: finalTake,
-      matrix_performance: null,
-      matrix_value: null,
-      matrix_ease_of_use: null,
-      matrix_portability: null,
-      matrix_compatibility: null,
-      matrix_long_term_suitability: null,
-      research_basis: null,
-      research_sources: [],
-      last_reviewed_at: null,
-      is_out_of_stock: Boolean(productData.is_out_of_stock),
       pros: strengths,
       cons: tradeOffs,
+      good_for: toCleanStringArray(productData.good_for).map((s) => s.trim()).filter(Boolean),
+      skip_if: toCleanStringArray(productData.skip_if).map((s) => s.trim()).filter(Boolean),
+      final_take: finalTake,
     };
 
     let insertedRow: any = null;
+    const payloadToInsert: Record<string, any> = { ...fullPayload };
+    let lastError: any = null;
 
-    // Insert via authenticated Supabase client (RLS enforces public.is_admin())
-    let { data: fullData, error: fullErr } = await supabase
-      .from("products")
-      .insert([fullPayload])
-      .select()
-      .single();
+    // Schema-resilient insert loop (auto-strips unmapped columns if not found in Supabase schema cache)
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const { data, error } = await supabase
+        .from("products")
+        .insert([payloadToInsert])
+        .select()
+        .single();
 
-    if (fullErr && (fullErr.message?.includes("youtube_url") || fullErr.message?.includes("retailer_url"))) {
-      const fallbackPayload: Record<string, any> = { ...fullPayload };
-      if (fullErr.message?.includes("youtube_url")) {
-        delete fallbackPayload.youtube_url;
+      if (!error && data) {
+        insertedRow = data;
+        lastError = null;
+        break;
       }
-      if (fullErr.message?.includes("retailer_url")) {
-        fallbackPayload.amazon_url = fallbackPayload.retailer_url;
-        delete fallbackPayload.retailer_url;
-        delete fallbackPayload.retailer_domain;
+
+      lastError = error;
+      const errMsg = error?.message || "";
+      const unmappedCol = extractUnmappedSchemaColumn(errMsg);
+
+      if (unmappedCol && payloadToInsert[unmappedCol] !== undefined) {
+        console.warn(`[Supabase Schema Resilient Insert] Removing unmapped column '${unmappedCol}' from payload (attempt ${attempt + 1})`);
+        if (unmappedCol === "retailer_url" && payloadToInsert.retailer_url) {
+          payloadToInsert.amazon_url = payloadToInsert.retailer_url;
+        }
+        delete payloadToInsert[unmappedCol];
+        continue;
       }
-      const retry = await supabase.from("products").insert([fallbackPayload]).select().single();
-      if (!retry.error && retry.data) {
-        fullData = retry.data;
-        fullErr = null;
+
+      // Fallbacks for known schema variations
+      if (errMsg.includes("youtube_url") && payloadToInsert.youtube_url !== undefined) {
+        delete payloadToInsert.youtube_url;
+        continue;
       }
+      if (errMsg.includes("retailer_url") && payloadToInsert.retailer_url !== undefined) {
+        payloadToInsert.amazon_url = payloadToInsert.retailer_url;
+        delete payloadToInsert.retailer_url;
+        delete payloadToInsert.retailer_domain;
+        continue;
+      }
+
+      // Unrecognized error, do not loop further
+      break;
     }
 
-    if (!fullErr && fullData) {
-      insertedRow = fullData;
-    } else if (fullErr) {
-      console.error("Supabase product insert error:", fullErr.message);
-      return { success: false, error: fullErr.message || "Failed to publish product to database." };
+    if (lastError || !insertedRow) {
+      console.error("Supabase product insert error:", lastError?.message);
+      return { success: false, error: lastError?.message || "Failed to publish product to database." };
     }
 
     const normalized = normalizeDbProduct(insertedRow);
@@ -838,47 +852,59 @@ export async function updateProductAction(
     if (updatedMediaUrl !== undefined) {
       const cleaned = cleanStr(updatedMediaUrl);
       fullUpdate.youtube_url = cleaned;
-      fullUpdate.video_url = cleaned;
-    }
-
-    if (productData.is_out_of_stock !== undefined) {
-      fullUpdate.is_out_of_stock = Boolean(productData.is_out_of_stock);
     }
 
     let updatedRow: any = null;
+    const payloadToUpdate: Record<string, any> = { ...fullUpdate };
+    let lastUpdateError: any = null;
 
-    // Update via authenticated client (RLS enforces public.is_admin())
-    let { data: fullData, error: fullErr } = await supabase
-      .from("products")
-      .update(fullUpdate)
-      .eq("id", id)
-      .select()
-      .maybeSingle();
+    // Schema-resilient update loop (auto-strips unmapped columns if not found in Supabase schema cache)
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const { data, error } = await supabase
+        .from("products")
+        .update(payloadToUpdate)
+        .eq("id", id)
+        .select()
+        .maybeSingle();
 
-    if (fullErr && (fullErr.message?.includes("youtube_url") || fullErr.message?.includes("retailer_url"))) {
-      const fallbackUpdate: Record<string, any> = { ...fullUpdate };
-      if (fullErr.message?.includes("youtube_url")) {
-        delete fallbackUpdate.youtube_url;
+      if (!error && data) {
+        updatedRow = data;
+        lastUpdateError = null;
+        break;
       }
-      if (fullErr.message?.includes("retailer_url")) {
-        if (fallbackUpdate.retailer_url !== undefined) {
-          fallbackUpdate.amazon_url = fallbackUpdate.retailer_url;
+
+      lastUpdateError = error;
+      const errMsg = error?.message || "";
+      const unmappedCol = extractUnmappedSchemaColumn(errMsg);
+
+      if (unmappedCol && payloadToUpdate[unmappedCol] !== undefined) {
+        console.warn(`[Supabase Schema Resilient Update] Removing unmapped column '${unmappedCol}' from payload (attempt ${attempt + 1})`);
+        if (unmappedCol === "retailer_url" && payloadToUpdate.retailer_url !== undefined) {
+          payloadToUpdate.amazon_url = payloadToUpdate.retailer_url;
         }
-        delete fallbackUpdate.retailer_url;
-        delete fallbackUpdate.retailer_domain;
+        delete payloadToUpdate[unmappedCol];
+        continue;
       }
-      const retry = await supabase.from("products").update(fallbackUpdate).eq("id", id).select().maybeSingle();
-      if (!retry.error && retry.data) {
-        fullData = retry.data;
-        fullErr = null;
+
+      if (errMsg.includes("youtube_url") && payloadToUpdate.youtube_url !== undefined) {
+        delete payloadToUpdate.youtube_url;
+        continue;
       }
+      if (errMsg.includes("retailer_url") && payloadToUpdate.retailer_url !== undefined) {
+        if (payloadToUpdate.retailer_url !== undefined) {
+          payloadToUpdate.amazon_url = payloadToUpdate.retailer_url;
+        }
+        delete payloadToUpdate.retailer_url;
+        delete payloadToUpdate.retailer_domain;
+        continue;
+      }
+
+      break;
     }
 
-    if (!fullErr && fullData) {
-      updatedRow = fullData;
-    } else if (fullErr) {
-      console.error("Supabase product update error:", fullErr.message);
-      return { success: false, error: fullErr.message || "Failed to update product." };
+    if (lastUpdateError || !updatedRow) {
+      console.error("Supabase product update error:", lastUpdateError?.message);
+      return { success: false, error: lastUpdateError?.message || "Failed to update product." };
     }
 
     const normalized = normalizeDbProduct(

@@ -1158,6 +1158,51 @@ test('SEO: India-localized metadata, keywords, and organization schema', async (
   assert.equal(orgSchema.contactPoint?.areaServed, 'IN');
 });
 
+test('Admin Schema-Resilience: is_out_of_stock removed from forms and schema-cache fallback handler in actions.ts', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+
+  // 1. Verify AddProductForm.tsx does not send or render is_out_of_stock / isOutOfStock
+  const addFormPath = path.resolve(process.cwd(), 'components/admin/AddProductForm.tsx');
+  const addFormContent = fs.readFileSync(addFormPath, 'utf8');
+  assert.equal(addFormContent.includes('isOutOfStock'), false, 'AddProductForm must not contain isOutOfStock state');
+  assert.equal(addFormContent.includes('is_out_of_stock'), false, 'AddProductForm must not include is_out_of_stock in payload');
+  assert.equal(addFormContent.includes('Mark as Out of Stock'), false, 'AddProductForm must not render Out of Stock checkbox');
+
+  // 2. Verify EditProductModal.tsx does not send or render is_out_of_stock / isOutOfStock
+  const editModalPath = path.resolve(process.cwd(), 'components/admin/EditProductModal.tsx');
+  const editModalContent = fs.readFileSync(editModalPath, 'utf8');
+  assert.equal(editModalContent.includes('isOutOfStock'), false, 'EditProductModal must not contain isOutOfStock state');
+  assert.equal(editModalContent.includes('is_out_of_stock'), false, 'EditProductModal must not include is_out_of_stock in payload');
+  assert.equal(editModalContent.includes('Mark as Out of Stock'), false, 'EditProductModal must not render Out of Stock checkbox');
+
+  // 3. Verify actions.ts has schema-resilient retry logic and extractUnmappedSchemaColumn
+  const actionsPath = path.resolve(process.cwd(), 'app/secure-admin-panel/actions.ts');
+  const actionsContent = fs.readFileSync(actionsPath, 'utf8');
+  assert.ok(actionsContent.includes('extractUnmappedSchemaColumn'), 'actions.ts must export extractUnmappedSchemaColumn');
+  assert.ok(actionsContent.includes('Supabase Schema Resilient Insert'), 'actions.ts must include schema-resilient insert loop');
+  assert.ok(actionsContent.includes('Supabase Schema Resilient Update'), 'actions.ts must include schema-resilient update loop');
+
+  // 4. Test extractUnmappedSchemaColumn regex behavior
+  const { extractUnmappedSchemaColumn } = await import('../lib/validation.ts');
+  assert.equal(
+    extractUnmappedSchemaColumn("Could not find the 'is_out_of_stock' column of 'products' in the schema cache"),
+    'is_out_of_stock'
+  );
+  assert.equal(
+    extractUnmappedSchemaColumn("Could not find the 'video_url' column of 'products' in the schema cache"),
+    'video_url'
+  );
+  assert.equal(
+    extractUnmappedSchemaColumn("PGRST204: Could not find the 'foo_bar' column of 'products' in the schema cache"),
+    'foo_bar'
+  );
+  assert.equal(extractUnmappedSchemaColumn("Some other database error"), null);
+  assert.equal(extractUnmappedSchemaColumn(null), null);
+  assert.equal(extractUnmappedSchemaColumn(undefined), null);
+});
+
+
 
 
 
