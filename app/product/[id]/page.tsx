@@ -12,7 +12,6 @@ import { getProductSchema } from '@/lib/structured-data';
 import FloatingCTA from '@/components/FloatingCTA';
 import ProductDetailCTA from '@/components/ProductDetailCTA';
 import ProductMedia from '@/components/ProductMedia';
-import InstagramFollowCard from '@/components/InstagramFollowCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -367,101 +366,6 @@ export default async function ProductDetailPage({
           imageUrl={product.imageUrl}
           badge={product.badge}
         />
-
-        {/* Footer */}
-        <footer className="border-t border-white/10 px-4 py-12 mt-12 bg-gradient-to-b from-slate-900 to-slate-950">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-              {/* Brand */}
-              <div>
-                <Link href="/" className="inline-flex items-center gap-2.5 mb-3 group focus:outline-none" aria-label="SmartChoice Homepage">
-                  <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-white/15 shadow-sm shrink-0">
-                    <Image
-                      src="/brand/logo-full.png"
-                      alt="SmartChoice"
-                      fill
-                      sizes="32px"
-                      className="object-cover group-hover:scale-105 transition-transform"
-                    />
-                  </div>
-                  <span className="text-white font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-blue-300">
-                    SmartChoice
-                  </span>
-                </Link>
-                <p className="text-slate-400 text-sm leading-relaxed">
-                  Handpicked essentials. Zero regrets.
-                </p>
-              </div>
-
-              {/* Browse */}
-              <div>
-                <h5 className="text-white font-semibold mb-3">Browse</h5>
-                <ul className="space-y-2">
-                  <li>
-                    <Link href="/" className="text-slate-400 hover:text-blue-300 transition-colors text-sm">
-                      Home
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/collections" className="text-slate-400 hover:text-blue-300 transition-colors text-sm">
-                      Collections
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/guides" className="text-slate-400 hover:text-blue-300 transition-colors text-sm">
-                      Guides
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/compare" className="text-slate-400 hover:text-blue-300 transition-colors text-sm">
-                      Compare
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Legal */}
-              <div>
-                <h5 className="text-white font-semibold mb-3">Legal</h5>
-                <ul className="space-y-2">
-                  <li>
-                    <Link href="/privacy-policy" className="text-slate-400 hover:text-blue-300 transition-colors text-sm">
-                      Privacy Policy
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/privacy-policy" className="text-slate-400 hover:text-blue-300 transition-colors text-sm">
-                      Terms of Service
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/privacy-policy" className="text-slate-400 hover:text-blue-300 transition-colors text-sm">
-                      Affiliate Disclosure
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Contact */}
-              <div>
-                <h5 className="text-white font-semibold mb-3">Contact</h5>
-                <p className="text-slate-400 text-sm mb-2">Questions? We&apos;re here to help.</p>
-                <a href="mailto:hello@smartchoice.com" className="text-blue-400 hover:text-blue-300 transition-colors text-sm">
-                  hello@smartchoice.com
-                </a>
-                <InstagramFollowCard />
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div className="border-t border-white/10 pt-8">
-              <div className="text-center text-slate-500 text-sm">
-                <p>© 2026 SmartChoice. All rights reserved.</p>
-                <p className="mt-2">We earn affiliate commissions to provide free, unbiased product recommendations.</p>
-              </div>
-            </div>
-          </div>
-        </footer>
       </div>
     </>
   );

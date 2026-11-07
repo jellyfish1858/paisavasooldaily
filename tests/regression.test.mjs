@@ -1224,14 +1224,24 @@ test('Footer Instagram support link and Organization sameAs schema integrity', a
   assert.ok(cardContent.includes('aria-label='), 'Must provide accessible aria-label');
   assert.ok(cardContent.includes('Support us for daily verified picks'), 'Must include support caption');
 
-  // 3. Layout and Product page footer placement
+  // 3. Single global footer in root layout and zero duplicate footer in product page
   const layoutPath = path.resolve(process.cwd(), 'app/layout.tsx');
   const layoutContent = fs.readFileSync(layoutPath, 'utf8');
+  assert.ok(layoutContent.includes('<footer'), 'app/layout.tsx must render the global footer');
   assert.ok(layoutContent.includes('<InstagramFollowCard />'), 'app/layout.tsx footer must render InstagramFollowCard');
 
   const productPagePath = path.resolve(process.cwd(), 'app/product/[id]/page.tsx');
   const productPageContent = fs.readFileSync(productPagePath, 'utf8');
-  assert.ok(productPageContent.includes('<InstagramFollowCard />'), 'app/product/[id]/page.tsx footer must render InstagramFollowCard');
+  assert.equal(
+    productPageContent.includes('<footer'),
+    false,
+    'app/product/[id]/page.tsx must NOT contain a duplicate footer tag'
+  );
+  assert.equal(
+    productPageContent.includes('<InstagramFollowCard />'),
+    false,
+    'app/product/[id]/page.tsx must not import or render duplicate InstagramFollowCard'
+  );
 
   // 4. Organization schema sameAs array includes Instagram URL
   const orgSchema = getOrganizationSchema();
