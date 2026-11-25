@@ -12,7 +12,7 @@ function resolveBaseUrl(customUrl?: string): string {
   if (process.env.NODE_ENV === "development") {
     return "http://localhost:3000";
   }
-  return "https://smartchoice-storefront.smartchoice.workers.dev";
+  return "https://paisavasooldaily.paisavasooldaily.workers.dev";
 }
 
 function extractNumericPrice(product: any): number {

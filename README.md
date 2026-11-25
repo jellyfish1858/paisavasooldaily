@@ -62,7 +62,7 @@ A high-contrast, minimalist Amazon Affiliate storefront and inventory management
 ### 2. Installation
 ```bash
 git clone <repo-url>
-cd smartchoice-storefront
+cd paisavasooldaily
 npm install
 ```
 

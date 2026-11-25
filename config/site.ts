@@ -17,7 +17,7 @@ export function getSiteUrl(): string {
   }
 
   // Canonical production URL for Paisavasooldaily
-  return "https://smartchoice-storefront.smartchoice.workers.dev";
+  return "https://paisavasooldaily.paisavasooldaily.workers.dev";
 }
 
 export const SITE_CONFIG = {
