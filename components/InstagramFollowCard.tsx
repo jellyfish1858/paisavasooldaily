@@ -7,7 +7,7 @@ export default function InstagramFollowCard() {
         href={INSTAGRAM_URL}
         target="_blank"
         rel="noopener noreferrer me"
-        aria-label="Follow SmartChoice on Instagram (opens in a new tab)"
+        aria-label="Follow Paisavasooldaily on Instagram (opens in a new tab)"
         className="group inline-flex items-center gap-3 rounded-xl border border-white/10 bg-slate-900/80 px-3 py-2.5 w-fit max-w-full transition-all duration-200 hover:border-pink-500/50 hover:bg-slate-800/80 hover:shadow-[0_0_20px_rgba(236,72,153,0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/60"
       >
         {/* Left: 36x36 rounded-lg tile with Instagram brand gradient */}
@@ -42,7 +42,7 @@ export default function InstagramFollowCard() {
 
       {/* Caption */}
       <p className="mt-2 text-xs text-slate-500">
-        Support us for daily verified picks &amp; genuine-product alerts.
+        Support us for daily product research &amp; review highlights.
       </p>
     </div>
   );

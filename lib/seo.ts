@@ -56,20 +56,20 @@ function truncateText(text: string, maxLength = 160): string {
  */
 export function generateHomeMeta(customBaseUrl?: string): SeoMetaResult {
   const baseUrl = resolveBaseUrl(customBaseUrl);
-  const title = "SmartChoice Storefront — Curated Product Picks & Anti-Regret Research";
+  const title = "Paisavasooldaily — Curated Product Picks & Anti-Regret Research";
   const description =
-    "Independent editorial product research, Anti-Regret matrix analysis, and curated recommendations before buying across Verified Beauty, Skincare & Grooming for Men and Women, and Tech Accessories in India.";
+    "Independent editorial product research, Anti-Regret matrix analysis of customer reviews and product specifications, and curated recommendations before buying across Beauty, Skincare & Grooming for Men and Women, and Tech Accessories in India.";
   const canonical = baseUrl;
   const ogImage = `${baseUrl}/og-default.jpg`;
   const ogType: "website" = "website";
 
   const keywords = [
-    "SmartChoice Storefront",
+    "Paisavasooldaily",
     "India product reviews",
-    "Verified Beauty and Fashion picks",
+    "Beauty and Fashion picks",
     "Everyday lifestyle skincare and grooming for men and women",
-    "100% original verified non-adulterated seller links",
-    "Anti-Adulteration skincare guarantee",
+    "Direct retailer links with customer review insights",
+    "Review-based picks with clear trade-offs",
     "Electronics and Tech Accessories India",
     "Anti-Regret buying guides India",
     "Best value products INR",
@@ -94,7 +94,7 @@ export function generateHomeMeta(customBaseUrl?: string): SeoMetaResult {
       title,
       description,
       url: canonical,
-      siteName: "SmartChoice Storefront",
+      siteName: "Paisavasooldaily",
       locale: "en_IN",
       type: ogType,
       images: [
@@ -102,7 +102,7 @@ export function generateHomeMeta(customBaseUrl?: string): SeoMetaResult {
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: "SmartChoice Storefront — Curated Product Picks & Editorial Research",
+          alt: "Paisavasooldaily — Curated Product Picks & Editorial Research",
         },
       ],
     },
@@ -147,13 +147,13 @@ export function generateProductMeta(
     return generateHomeMeta(baseUrl);
   }
 
-  const rawTitle = cleanText(product.title) || "Curated Product";
+  const rawTitle = (cleanText(product.title) || "Curated Product").replace(/^PRODUCT TITLE:\s*/i, "").trim();
   const category = cleanText(product.category) || "Picks";
   const slug = cleanText(product.slug) || cleanText(product.id) || "item";
   const canonical = `${baseUrl}/product/${slug}`;
 
   // Product Name + Category title
-  const title = `${rawTitle} | ${category} | SmartChoice`;
+  const title = `${rawTitle} | ${category} | Paisavasooldaily`;
 
   // Quick take + key specs description
   const quickTake = cleanText(
@@ -200,7 +200,7 @@ export function generateProductMeta(
       title,
       description,
       url: canonical,
-      siteName: "SmartChoice Storefront",
+      siteName: "Paisavasooldaily",
       locale: "en_IN",
       type: ogType,
       images: [
@@ -208,7 +208,7 @@ export function generateProductMeta(
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: `${rawTitle} — SmartChoice Curated Pick`,
+          alt: `${rawTitle} — Paisavasooldaily Curated Pick`,
         },
       ],
     },
@@ -259,7 +259,7 @@ export function generateCollectionMeta(
   const count = Number(collection.count || collection.products?.length || 0);
 
   // Dynamic meta title: collection name
-  const title = `${rawName} Collection — Curated Top Picks | SmartChoice`;
+  const title = `${rawName} Collection — Curated Top Picks | Paisavasooldaily`;
 
   // Dynamic meta description: collection description + product count
   let rawDesc = cleanText(collection.description);
@@ -268,8 +268,8 @@ export function generateCollectionMeta(
   }
   const countSnippet = count > 0 ? ` Explore ${count} curated product recommendations.` : "";
   const fullDesc = rawDesc
-    ? `${rawDesc}${countSnippet} Verified by independent editorial research.`
-    : `Explore ${count} handpicked items in the ${rawName} collection. Zero regrets guaranteed.`;
+    ? `${rawDesc}${countSnippet} Researched from customer reviews and product specifications.`
+    : `Explore ${count} handpicked items in the ${rawName} collection with clear trade-offs.`;
 
   const description = truncateText(fullDesc, 160);
 
@@ -294,7 +294,7 @@ export function generateCollectionMeta(
       title,
       description,
       url: canonical,
-      siteName: "SmartChoice Storefront",
+      siteName: "Paisavasooldaily",
       locale: "en_IN",
       type: ogType,
       images: [
@@ -302,7 +302,7 @@ export function generateCollectionMeta(
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: `${rawName} — SmartChoice Curated Collection`,
+          alt: `${rawName} — Paisavasooldaily Curated Collection`,
         },
       ],
     },

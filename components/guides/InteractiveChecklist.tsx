@@ -12,7 +12,7 @@ interface Props {
 
 export default function InteractiveChecklist({
   ctaCollectionSlug = 'premium-picks',
-  ctaCollectionName = 'View Verified High-Quality Picks',
+  ctaCollectionName = 'View Curated High-Quality Picks',
 }: Props) {
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -141,7 +141,7 @@ export default function InteractiveChecklist({
                 {scoreData.tierBadge}
               </span>
               <span className="text-xs font-mono text-slate-400">
-                {scoreData.count} of {scoreData.totalCount} standards verified
+                {scoreData.count} of {scoreData.totalCount} standards checked
               </span>
             </div>
             <h3 className="text-xl sm:text-2xl font-bold text-white">
@@ -271,13 +271,13 @@ export default function InteractiveChecklist({
         <div className="space-y-2 text-center sm:text-left">
           <div className="inline-flex items-center gap-1.5 text-blue-400 font-mono text-xs uppercase tracking-wider font-bold">
             <CheckCircle2 size={16} />
-            SmartChoice Curated Catalog
+            Paisavasooldaily Curated Catalog
           </div>
           <h4 className="text-xl font-bold text-white">
             Looking for products that already pass this 12-point audit?
           </h4>
           <p className="text-sm text-slate-300 max-w-xl">
-            Every product in our catalog undergoes rigorous teardown verification to meet high-durability and zero-regret benchmarks.
+            Our curated catalog highlights products with strong build quality, clear specifications, and customer-tested reliability.
           </p>
         </div>
         <Link

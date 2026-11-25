@@ -499,7 +499,7 @@ export default function EditProductModal({
                 <div className="mb-2 flex items-center justify-between">
                   <div>
                     <span className="font-mono text-xs uppercase tracking-widest font-bold text-ink block">
-                      Verified Strengths (Pros)
+                      Key Strengths (Pros)
                     </span>
                     <span className="font-mono text-[10px] text-muted">
                       Displayed with green checkmarks

@@ -398,10 +398,10 @@ export default function ReturnFlowchart({
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-blue-900/30 via-slate-900 to-indigo-900/30 border border-blue-500/30 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="space-y-1.5 text-center sm:text-left">
           <h4 className="text-lg font-extrabold text-white">
-            Shop stress-free with verified merchant protection
+            Shop with clear return policy expectations
           </h4>
           <p className="text-xs sm:text-sm text-slate-300">
-            SmartChoice only curates products backed by established 30-day return windows and manufacturer guarantees.
+            Review return windows and warranty terms before buying to avoid unexpected policy restrictions.
           </p>
         </div>
         <Link

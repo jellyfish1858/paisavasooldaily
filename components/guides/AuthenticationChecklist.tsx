@@ -26,7 +26,7 @@ interface Props {
 
 export default function AuthenticationChecklist({
   ctaCollectionSlug = 'smart-buys',
-  ctaCollectionName = 'Browse Authentic Verified Products',
+  ctaCollectionName = 'Browse Curated Products',
 }: Props) {
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -105,7 +105,7 @@ export default function AuthenticationChecklist({
 
     if (percentage >= 85) {
       tier = {
-        label: 'Verified Authentic Hardware',
+        label: 'High Authenticity Confidence',
         color: 'from-emerald-500 to-teal-500',
         borderColor: 'border-emerald-500/40',
         textColor: 'text-emerald-400',
@@ -365,10 +365,10 @@ export default function AuthenticationChecklist({
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-blue-900/30 via-slate-900 to-emerald-900/30 border border-blue-500/30 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="space-y-1.5 text-center sm:text-left">
           <h4 className="text-lg font-extrabold text-white">
-            Skip the clone lottery with 100% genuine picks
+            Skip the clone lottery with curated picks
           </h4>
           <p className="text-xs sm:text-sm text-slate-300">
-            Every product showcased on SmartChoice links directly to verified manufacturer brand stores.
+            Every product showcased on Paisavasooldaily links directly to official or highly rated retailer stores.
           </p>
         </div>
         <Link

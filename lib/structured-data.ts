@@ -1,4 +1,5 @@
 import { INSTAGRAM_URL } from "./social.ts";
+import { CONTACT_EMAIL } from "../config/site.ts";
 
 function resolveBaseUrl(customUrl?: string): string {
   if (customUrl && typeof customUrl === "string" && customUrl.trim()) {
@@ -43,7 +44,7 @@ export function getOrganizationSchema(customBaseUrl?: string) {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "SmartChoice Storefront",
+    name: "Paisavasooldaily",
     url: baseUrl,
     logo: `${baseUrl}/brand/logo-full.png`,
     description:
@@ -55,7 +56,7 @@ export function getOrganizationSchema(customBaseUrl?: string) {
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer service",
-      email: "hello@smartchoice.com",
+      ...(CONTACT_EMAIL ? { email: CONTACT_EMAIL } : {}),
       url: `${baseUrl}/privacy-policy`,
       areaServed: "IN",
       availableLanguage: ["en", "hi"],
@@ -75,7 +76,7 @@ export function getProductSchema(product: any, customBaseUrl?: string) {
     return null;
   }
 
-  const name = cleanString(product.title) || "Curated Product";
+  const name = (cleanString(product.title) || "Curated Product").replace(/^PRODUCT TITLE:\s*/i, "").trim();
   const slug = cleanString(product.slug) || cleanString(product.id) || "item";
   const productUrl = `${baseUrl}/product/${slug}`;
   const description =
@@ -94,7 +95,7 @@ export function getProductSchema(product: any, customBaseUrl?: string) {
   const price = extractNumericPrice(product) || 999;
   const isOutOfStock = Boolean(product.is_out_of_stock);
 
-  // Extract Pros (Verified Strengths) for Google Pros & Cons Rich Snippets
+  // Extract Pros (Key Strengths) for Google Pros & Cons Rich Snippets
   const rawPros: any[] = Array.isArray(product.pros)
     ? product.pros
     : Array.isArray(product.strengths)
@@ -165,8 +166,8 @@ export function getProductSchema(product: any, customBaseUrl?: string) {
 
     videoObject = {
       "@type": "VideoObject",
-      name: `${name} — Verified Video Overview & Review`,
-      description: `Watch verified performance, hands-on review, and visual features of ${name}.`,
+      name: `${name} — Video Overview & Product Breakdown`,
+      description: `Watch overview, performance highlights, and visual features of ${name}.`,
       thumbnailUrl: [image],
       uploadDate: "2026-01-01T00:00:00Z",
       contentUrl: rawVideoUrl,
@@ -183,7 +184,7 @@ export function getProductSchema(product: any, customBaseUrl?: string) {
     category,
     brand: {
       "@type": "Brand",
-      name: cleanString(product.brand) || "SmartChoice Curated",
+      name: cleanString(product.brand) || "Paisavasooldaily Curated",
     },
     offers: {
       "@type": "Offer",
@@ -197,7 +198,7 @@ export function getProductSchema(product: any, customBaseUrl?: string) {
         : "https://schema.org/InStock",
       seller: {
         "@type": "Organization",
-        name: "Verified Retailer",
+        name: "Partner Retailer",
       },
     },
     aggregateRating: {

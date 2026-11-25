@@ -268,6 +268,9 @@ function CompareContent() {
                           productId={p.id}
                           productTitle={p.title}
                         />
+                        <p className="font-mono text-[10px] text-muted text-center pt-0.5">
+                          Affiliate link (earns commission)
+                        </p>
                       </div>
                     </td>
                   ))}

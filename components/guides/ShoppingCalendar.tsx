@@ -182,10 +182,10 @@ export default function ShoppingCalendar({
         <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="space-y-1 text-center sm:text-left">
             <h5 className="text-sm font-bold text-white">
-              Want verified real-time prices?
+              Looking for current prices and deals?
             </h5>
             <p className="text-xs text-slate-400">
-              Browse our live collections where pricing history is checked daily against seasonal benchmarks.
+              Browse our curated collections to compare specs and view direct retailer listings.
             </p>
           </div>
           <Link

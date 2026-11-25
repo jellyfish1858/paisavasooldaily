@@ -69,7 +69,7 @@ export const QUALITY_CHECKLIST_ITEMS: ChecklistItem[] = [
   {
     id: 'const-2',
     title: 'Brand-Name Internal Components',
-    description: 'Employs verified Tier-1 sub-components (e.g., YKK zippers, Omron microswitches, Nichia LEDs, Japanese capacitors) rather than unbranded clones.',
+    description: 'Employs recognized Tier-1 sub-components (e.g., YKK zippers, Omron microswitches, Nichia LEDs, Japanese capacitors) rather than unbranded clones.',
     category: 'construction',
     weight: 10,
   },
@@ -779,7 +779,7 @@ export const INTERACTIVE_BUYING_GUIDES: InteractiveGuideMeta[] = [
       'Regulatory verification: identifying genuine safety certifications (UL, ETL, RoHS) with registration numbers',
     ],
     ctaCollectionSlug: 'premium-picks',
-    ctaCollectionName: 'View Verified High-Quality Picks',
+    ctaCollectionName: 'View Curated High-Quality Picks',
   },
   {
     id: 'guide-read-reviews',
@@ -787,7 +787,7 @@ export const INTERACTIVE_BUYING_GUIDES: InteractiveGuideMeta[] = [
     title: 'Reading Reviews: What to Trust & What to Skip',
     shortTitle: 'Review Evaluation Quiz',
     subtitle: 'Test your critical review-analysis skills with 5 real-world scenarios and discover how to bypass fake 5-star review farming.',
-    description: 'Learn to separate authentic customer feedback from review syndicates, reciprocity bias, and irrelevant shipping complaints with our interactive quiz.',
+    description: 'Learn to separate real customer feedback from review syndicates, reciprocity bias, and irrelevant shipping complaints with our interactive quiz.',
     readingTime: '6 min interactive',
     category: 'Consumer Intelligence',
     interactiveType: 'quiz',
@@ -801,7 +801,7 @@ export const INTERACTIVE_BUYING_GUIDES: InteractiveGuideMeta[] = [
       'Review hijacking: spotting reused product listings that inherit unrelated ratings',
     ],
     ctaCollectionSlug: 'best-value',
-    ctaCollectionName: 'Browse Authentically Rated Picks',
+    ctaCollectionName: 'Browse Top-Rated Picks',
   },
   {
     id: 'guide-best-value',
@@ -841,7 +841,7 @@ export const INTERACTIVE_BUYING_GUIDES: InteractiveGuideMeta[] = [
     keyTakeaways: [
       'Seasonal clearance waves: timing major electronic purchases around annual promotional cycles',
       'Pre-monsoon cooling cycles: why early summer brings competitive appliance promotions',
-      'Festive season promotional wave: tracking genuine price drops versus artificial markups',
+      'Festive season promotional wave: identifying real price drops versus artificial markups',
       'Smart cycle timing: waiting for annual product refresh keynotes to buy preceding flagships',
     ],
     ctaCollectionSlug: 'trending-now',
@@ -890,7 +890,7 @@ export const INTERACTIVE_BUYING_GUIDES: InteractiveGuideMeta[] = [
       'Contextual evaluation: distinguishing metrics that affect daily longevity from promotional marketing',
     ],
     ctaCollectionSlug: 'premium-picks',
-    ctaCollectionName: 'View Verified High-Spec Hardware',
+    ctaCollectionName: 'View Curated High-Spec Hardware',
   },
   // 7. Spotting Inauthentic & Substandard Products
   {
@@ -913,7 +913,7 @@ export const INTERACTIVE_BUYING_GUIDES: InteractiveGuideMeta[] = [
       'Invoice & seller verification: confirming registered seller details and authorized warranty coverage',
     ],
     ctaCollectionSlug: 'smart-buys',
-    ctaCollectionName: 'Browse Authentic Verified Products',
+    ctaCollectionName: 'Browse Curated Products',
   },
   // 8. Best Times to Buy: Annual Deal Calendar
   {
@@ -959,7 +959,7 @@ export const INTERACTIVE_BUYING_GUIDES: InteractiveGuideMeta[] = [
       'Claim fine print: identifying deductible fees and exclusions before purchasing store protection',
     ],
     ctaCollectionSlug: 'best-value',
-    ctaCollectionName: 'Shop Verified Durable Equipment',
+    ctaCollectionName: 'Shop Curated Durable Equipment',
   },
   // 10. Returns & Refunds: Navigating Policies & Grievances
   {
@@ -982,7 +982,7 @@ export const INTERACTIVE_BUYING_GUIDES: InteractiveGuideMeta[] = [
       'Grievance channels: escalating unresolved delivery disputes through official consumer platforms',
     ],
     ctaCollectionSlug: 'everyday-essentials',
-    ctaCollectionName: 'Browse Guaranteed Return Products',
+    ctaCollectionName: 'Browse Return-Eligible Products',
   },
 ];
 

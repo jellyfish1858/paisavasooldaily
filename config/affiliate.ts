@@ -195,7 +195,7 @@ export function buildAmazonAffiliateUrl(rawUrl?: string | null, overrideTag?: st
     const tag = overrideTag || getAmazonAssociateTag();
     if (!tag) {
       if (process.env.NODE_ENV !== "production") {
-        console.warn("[SmartChoice Affiliate] NEXT_PUBLIC_AMAZON_ASSOCIATE_TAG is not set.");
+        console.warn("[Paisavasooldaily Affiliate] NEXT_PUBLIC_AMAZON_ASSOCIATE_TAG is not set.");
       }
       return null;
     }

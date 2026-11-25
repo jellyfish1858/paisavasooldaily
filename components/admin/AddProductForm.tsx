@@ -222,7 +222,7 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
           Add New Product
         </h2>
         <p className="font-mono text-xs text-muted mt-1">
-          Publish products with verified specs, editorial quick take, decision support, and optional video proof.
+          Publish products with curated specs, editorial quick take, decision support, and optional video proof.
         </p>
       </div>
 
@@ -440,7 +440,7 @@ export default function AddProductForm({ onSuccess, onError, onInserted }: Props
               <div className="mb-3 flex items-center justify-between">
                 <div>
                   <span className="font-mono text-xs uppercase tracking-widest font-bold text-ink block">
-                    Verified Strengths (Pros)
+                    Key Strengths (Pros)
                   </span>
                   <span className="font-mono text-[10px] text-muted">
                     Displayed with green checkmarks

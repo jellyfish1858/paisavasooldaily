@@ -203,7 +203,7 @@ export default function CollectionProductPickerModal({
                 Catalog Products
               </span>
               <p className="font-mono text-xs text-muted mt-0.5">
-                Select an existing product from the SmartChoice catalog.
+                Select an existing product from the Paisavasooldaily catalog.
               </p>
             </div>
 

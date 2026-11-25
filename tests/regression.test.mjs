@@ -361,13 +361,15 @@ test('Anti-Regret Matrix safely scores attributes without throwing on missing fi
 // -----------------------------------------------------------------------------
 // 7. Robots.txt Configuration
 // -----------------------------------------------------------------------------
-test('Robots configuration disallows admin and query routes while allowing public crawling', () => {
+test('Robots configuration disallows admin and query routes while allowing public crawling', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
   const baseUrl = 'https://smartchoice-storefront.smartchoice.workers.dev';
   const robotsConfig = {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/secure-admin-panel', '/secure-admin-panel/', '/api/', '/compare?*'],
+      disallow: ['/secure-admin-panel', '/secure-admin-panel/', '/api/', '/compare?*', '/go'],
     },
     sitemap: `${baseUrl}/sitemap.xml`,
   };
@@ -378,7 +380,12 @@ test('Robots configuration disallows admin and query routes while allowing publi
   assert.ok(robotsConfig.rules.disallow.includes('/secure-admin-panel/'));
   assert.ok(robotsConfig.rules.disallow.includes('/api/'));
   assert.ok(robotsConfig.rules.disallow.includes('/compare?*'));
+  assert.ok(robotsConfig.rules.disallow.includes('/go'));
   assert.equal(robotsConfig.sitemap, `${baseUrl}/sitemap.xml`);
+
+  const robotsPath = path.resolve(process.cwd(), 'app/robots.ts');
+  const robotsContent = fs.readFileSync(robotsPath, 'utf8');
+  assert.ok(robotsContent.includes('"/go"'), 'app/robots.ts must disallow /go');
 });
 
 // -----------------------------------------------------------------------------
@@ -678,7 +685,7 @@ import {
 
 test('generateHomeMeta generates canonical, og, and twitter tags', () => {
   const meta = generateHomeMeta('https://smartchoice-storefront.smartchoice.workers.dev');
-  assert.ok(meta.title.includes('SmartChoice'));
+  assert.ok(meta.title.includes('Paisavasooldaily'));
   assert.ok(meta.description.length > 20);
   assert.equal(meta.canonical, 'https://smartchoice-storefront.smartchoice.workers.dev');
   assert.equal(meta.ogType, 'website');
@@ -700,7 +707,7 @@ test('generateProductMeta generates dynamic meta title with category and descrip
   const meta = generateProductMeta(mockProduct, 'https://smartchoice-storefront.smartchoice.workers.dev');
   assert.equal(
     meta.title,
-    'Sony WH-1000XM5 Wireless Headphones | Electronics & Tech Accessories | SmartChoice'
+    'Sony WH-1000XM5 Wireless Headphones | Electronics & Tech Accessories | Paisavasooldaily'
   );
   assert.ok(meta.description.includes('Industry-leading noise canceling'));
   assert.ok(meta.description.includes('Battery: 30 hours'));
@@ -720,7 +727,7 @@ test('generateCollectionMeta generates dynamic meta title and description with p
   };
 
   const meta = generateCollectionMeta(mockCollection, 'https://smartchoice-storefront.smartchoice.workers.dev');
-  assert.equal(meta.title, 'Best Value Collection — Curated Top Picks | SmartChoice');
+  assert.equal(meta.title, 'Best Value Collection — Curated Top Picks | Paisavasooldaily');
   assert.ok(meta.description.includes('ranked by real customer choices'));
   assert.ok(meta.description.includes('12'));
   assert.equal(
@@ -733,7 +740,7 @@ test('getOrganizationSchema returns valid Organization JSON-LD', () => {
   const schema = getOrganizationSchema('https://smartchoice-storefront.smartchoice.workers.dev');
   assert.equal(schema['@context'], 'https://schema.org');
   assert.equal(schema['@type'], 'Organization');
-  assert.equal(schema.name, 'SmartChoice Storefront');
+  assert.equal(schema.name, 'Paisavasooldaily');
   assert.ok(schema.url);
   assert.ok(schema.logo);
   assert.ok(schema.contactPoint);
@@ -1030,10 +1037,10 @@ test('Category Tabs and BeautyTrustShowcase data integrity', async () => {
   const showcasePath = path.resolve(process.cwd(), 'components/BeautyTrustShowcase.tsx');
   assert.ok(fs.existsSync(showcasePath), 'BeautyTrustShowcase component file must exist');
   const showcaseContent = fs.readFileSync(showcasePath, 'utf8');
-  assert.ok(showcaseContent.includes('Zero Adulterated or Counterfeit Stock'), 'Must feature headline guarantee');
-  assert.ok(showcaseContent.includes('Out-of-Stock Seller Protection'), 'Must feature Pillar 1');
-  assert.ok(showcaseContent.includes('For Every Routine (Men &amp; Women)'), 'Must feature Pillar 2');
-  assert.ok(showcaseContent.includes('Your Monthly Restock &amp; Upgrade Hub'), 'Must feature Pillar 3');
+  assert.ok(showcaseContent.includes('Review-Based Picks With Clear Trade-Offs'), 'Must feature headline');
+  assert.ok(showcaseContent.includes('Marketplace Seller Awareness'), 'Must feature Pillar 2');
+  assert.ok(showcaseContent.includes('For Every Routine (Men &amp; Women)'), 'Must feature Pillar 3');
+  assert.ok(showcaseContent.includes('Your Monthly Restock &amp; Upgrade Hub'), 'Must feature Pillar 4');
   assert.ok(showcaseContent.includes('Most-Used Daily Lifestyle Favorites (Females &amp; Males)'), 'Must feature daily lifestyle social-proof pillar');
   assert.ok(showcaseContent.includes('Curated from what most women and men actually use in their daily beauty &amp; fashion lifestyle'), 'Must feature daily lifestyle tagline');
 });
@@ -1066,7 +1073,7 @@ test('BeautyWelcomePopup once-per-visitor localStorage key and component integri
   const popupContent = fs.readFileSync(popupPath, 'utf8');
   assert.ok(popupContent.includes('smartchoice:select-tab'), 'Must dispatch select-tab custom event');
   assert.ok(popupContent.includes('FOR MEN &amp; WOMEN'), 'Must emphasize inclusive gender-neutral copy');
-  assert.ok(popupContent.includes('Zero-Adulteration Seller Links'), 'Must feature zero-adulteration highlight');
+  assert.ok(popupContent.includes('Direct Retailer Links'), 'Must feature direct retailer links highlight');
   assert.ok(popupContent.includes('The everyday beauty, grooming &amp; fashion staples most women and men actually use in their daily lifestyle'), 'Must feature daily lifestyle hook in welcome popup');
   assert.ok(popupContent.includes('Most-Used Daily Lifestyle Staples'), 'Must feature daily lifestyle staple bullet in welcome popup');
 });
@@ -1148,7 +1155,7 @@ test('SEO: India-localized metadata, keywords, and organization schema', async (
   const keywordsStr = JSON.stringify(homeMeta.metadata.keywords || []);
   assert.ok(keywordsStr.includes('Beauty'), 'Keywords must include Beauty');
   assert.ok(keywordsStr.includes('Fashion'), 'Keywords must include Fashion');
-  assert.ok(keywordsStr.includes('Anti-Adulteration'), 'Keywords must include Anti-Adulteration');
+  assert.ok(keywordsStr.includes('clear trade-offs'), 'Keywords must include clear trade-offs');
   assert.ok(keywordsStr.includes('India'), 'Keywords must include India');
 
   // getOrganizationSchema
@@ -1222,7 +1229,7 @@ test('Footer Instagram support link and Organization sameAs schema integrity', a
   assert.ok(cardContent.includes('Follow us on Instagram'), 'Must include text "Follow us on Instagram"');
   assert.ok(cardContent.includes('{INSTAGRAM_HANDLE}'), 'Must render Instagram handle');
   assert.ok(cardContent.includes('aria-label='), 'Must provide accessible aria-label');
-  assert.ok(cardContent.includes('Support us for daily verified picks'), 'Must include support caption');
+  assert.ok(cardContent.includes('Support us for daily product research'), 'Must include support caption');
 
   // 3. Single global footer in root layout and zero duplicate footer in product page
   const layoutPath = path.resolve(process.cwd(), 'app/layout.tsx');
@@ -1251,6 +1258,273 @@ test('Footer Instagram support link and Organization sameAs schema integrity', a
     'Organization schema sameAs must include Instagram URL'
   );
 });
+
+test('SEO: Root layout <head> includes Google Search Console verification meta tag', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const layoutPath = path.resolve(process.cwd(), 'app/layout.tsx');
+  const layoutContent = fs.readFileSync(layoutPath, 'utf8');
+  const headMatch = layoutContent.match(/<head>([\s\S]*?)<\/head>/);
+  assert.ok(headMatch, 'app/layout.tsx must contain a <head> block');
+  const headContent = headMatch[1];
+  assert.ok(
+    headContent.includes('name="google-site-verification"') &&
+      headContent.includes('content="pm5FrcDkqEdg4GK4xyU18KhC7xoceMCfzHVOfjDChEg"'),
+    'Root layout <head> must contain the Google Search Console verification meta tag'
+  );
+});
+
+// -----------------------------------------------------------------------------
+// Search-to-Affiliate Redirection (/go) & Search Box UI Suite
+// -----------------------------------------------------------------------------
+test('Route /go: empty query redirects 302 to homepage with no-store and noindex headers', async () => {
+  const { GET } = await import('../app/go/route.ts');
+  const req = new Request('http://localhost:3000/go?q=');
+  const res = await GET(req);
+
+  assert.equal(res.status, 302, 'Must return 302 redirect for empty query');
+  assert.equal(res.headers.get('location'), 'http://localhost:3000/', 'Must redirect to homepage');
+  assert.equal(res.headers.get('cache-control'), 'no-store', 'Cache-Control must be no-store');
+  assert.equal(res.headers.get('x-robots-tag'), 'noindex, nofollow', 'X-Robots-Tag must be noindex, nofollow');
+});
+
+test('Route /go: query redirects 302 to Amazon search with tag=jellyfish180c-21 and proper URL encoding', async () => {
+  const { GET } = await import('../app/go/route.ts');
+
+  // Basic query
+  const reqBasic = new Request('http://localhost:3000/go?q=sunscreen');
+  const resBasic = await GET(reqBasic);
+  assert.equal(resBasic.status, 302);
+  assert.equal(
+    resBasic.headers.get('location'),
+    'https://www.amazon.in/s?k=sunscreen&tag=jellyfish180c-21',
+    'Must redirect to amazon.in search with affiliate tag'
+  );
+  assert.equal(resBasic.headers.get('cache-control'), 'no-store');
+  assert.equal(resBasic.headers.get('x-robots-tag'), 'noindex, nofollow');
+
+  // Query with quote, ampersand, and spaces
+  const reqSpecial = new Request('http://localhost:3000/go?q=sunscreen%20"matte"%20%26%20oil-free');
+  const resSpecial = await GET(reqSpecial);
+  assert.equal(resSpecial.status, 302);
+  assert.equal(
+    resSpecial.headers.get('location'),
+    'https://www.amazon.in/s?k=sunscreen%20%22matte%22%20%26%20oil-free&tag=jellyfish180c-21',
+    'Quotes, ampersands, and spaces must be properly URL-encoded'
+  );
+});
+
+test('Route /go: Flipkart/Meesho fall back to Amazon when KEYWORD_LINKS is empty, and match when configured', async () => {
+  const { GET } = await import('../app/go/route.ts');
+  const { normalizeKeyword, findKeywordLink, buildAmazonSearchUrl } = await import('../lib/keyword-links.ts');
+
+  // Empty KEYWORD_LINKS fallback to Amazon
+  const reqFlipkart = new Request('http://localhost:3000/go?q=sunscreen&store=flipkart');
+  const resFlipkart = await GET(reqFlipkart);
+  assert.equal(resFlipkart.status, 302);
+  assert.equal(
+    resFlipkart.headers.get('location'),
+    'https://www.amazon.in/s?k=sunscreen&tag=jellyfish180c-21',
+    'Unmapped Flipkart search must fall back to Amazon search'
+  );
+
+  const reqMeesho = new Request('http://localhost:3000/go?q=sunscreen&store=meesho');
+  const resMeesho = await GET(reqMeesho);
+  assert.equal(resMeesho.status, 302);
+  assert.equal(
+    resMeesho.headers.get('location'),
+    'https://www.amazon.in/s?k=sunscreen&tag=jellyfish180c-21',
+    'Unmapped Meesho search must fall back to Amazon search'
+  );
+
+  // Keyword lookup test with mock map
+  const mockMap = {
+    'sunscreen': {
+      flipkart: 'https://ekaro.in/fk-sunscreen',
+      meesho: 'https://ekaro.in/ms-sunscreen',
+    },
+    'running shoes': {
+      flipkart: 'https://ekaro.in/fk-running-shoes',
+    },
+  };
+
+  // Exact match (normalized with punctuation)
+  assert.equal(
+    findKeywordLink('Sunscreen!', 'flipkart', mockMap),
+    'https://ekaro.in/fk-sunscreen',
+    'Exact match must normalize case and punctuation'
+  );
+  assert.equal(
+    findKeywordLink('sunscreen', 'meesho', mockMap),
+    'https://ekaro.in/ms-sunscreen'
+  );
+
+  // Contained match
+  assert.equal(
+    findKeywordLink('best sunscreen for oily skin', 'flipkart', mockMap),
+    'https://ekaro.in/fk-sunscreen',
+    'Must match when keyword is contained in query'
+  );
+
+  // Missing store in map falls back to null (which route handler redirects to Amazon)
+  assert.equal(findKeywordLink('running shoes', 'meesho', mockMap), null);
+});
+
+test('Search Box UI: component markup, form action, input constraints, and affiliate disclosure', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+
+  const boxPath = path.resolve(process.cwd(), 'components/ProductSearchBox.tsx');
+  assert.ok(fs.existsSync(boxPath), 'ProductSearchBox component must exist');
+  const boxContent = fs.readFileSync(boxPath, 'utf8');
+
+  // Form action & method
+  assert.ok(boxContent.includes('action="/go"'), 'Form action must be /go');
+  assert.ok(boxContent.includes('method="GET"'), 'Form method must be GET');
+
+  // Input requirements
+  assert.ok(boxContent.includes('name="q"'), 'Input name must be q');
+  assert.ok(
+    boxContent.includes('placeholder="Search any product, e.g. sunscreen for oily skin"'),
+    'Placeholder must match exact requirement'
+  );
+  assert.ok(boxContent.includes('required'), 'Input must be required');
+  assert.ok(boxContent.includes('maxLength={100}'), 'Input maxLength must be 100');
+
+  // Store select options
+  assert.ok(boxContent.includes('name="store"'), 'Select name must be store');
+  assert.ok(boxContent.includes('value="amazon"'), 'Select must include Amazon option');
+  assert.ok(boxContent.includes('value="flipkart"'), 'Select must include Flipkart option');
+  assert.ok(boxContent.includes('value="meesho"'), 'Select must include Meesho option');
+
+  // Mandatory disclosure
+  assert.ok(
+    boxContent.includes('As an Amazon Associate and affiliate partner, we earn from qualifying purchases.'),
+    'Must display mandatory affiliate disclosure directly under the search box'
+  );
+
+  // Zero prohibited claims
+  const prohibitedClaims = ['verified', 'authentic', 'tested by us', 'zero fake reviews'];
+  const lowerBox = boxContent.toLowerCase();
+  for (const claim of prohibitedClaims) {
+    assert.equal(
+      lowerBox.includes(claim),
+      false,
+      `ProductSearchBox must NOT contain prohibited claim: "${claim}"`
+    );
+  }
+
+  // StorefrontClient renders ProductSearchBox
+  const clientPath = path.resolve(process.cwd(), 'app/StorefrontClient.tsx');
+  const clientContent = fs.readFileSync(clientPath, 'utf8');
+  assert.ok(
+    clientContent.includes('<ProductSearchBox />'),
+    'app/StorefrontClient.tsx must render <ProductSearchBox />'
+  );
+});
+
+test('CONTACT_EMAIL environment variable configuration and conditional rendering', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const { CONTACT_EMAIL } = await import('../config/site.ts');
+  const { getOrganizationSchema } = await import('../lib/structured-data.ts');
+
+  // 1. .env.example must define NEXT_PUBLIC_CONTACT_EMAIL with no value
+  const envExamplePath = path.resolve(process.cwd(), '.env.example');
+  const envExampleContent = fs.readFileSync(envExamplePath, 'utf8');
+  assert.ok(
+    envExampleContent.includes('NEXT_PUBLIC_CONTACT_EMAIL='),
+    '.env.example must define NEXT_PUBLIC_CONTACT_EMAIL='
+  );
+
+  // 2. Personal email must not appear hardcoded in source files
+  const layoutPath = path.resolve(process.cwd(), 'app/layout.tsx');
+  const layoutContent = fs.readFileSync(layoutPath, 'utf8');
+  assert.equal(
+    layoutContent.includes('saivenkat.adina@gmail.com'),
+    false,
+    'app/layout.tsx must NOT contain hardcoded personal email'
+  );
+  assert.equal(
+    layoutContent.includes('hello@smartchoice.com'),
+    false,
+    'app/layout.tsx must NOT contain placeholder email'
+  );
+
+  const structuredDataPath = path.resolve(process.cwd(), 'lib/structured-data.ts');
+  const structuredDataContent = fs.readFileSync(structuredDataPath, 'utf8');
+  assert.equal(
+    structuredDataContent.includes('saivenkat.adina@gmail.com'),
+    false,
+    'lib/structured-data.ts must NOT contain hardcoded personal email'
+  );
+  assert.equal(
+    structuredDataContent.includes('hello@smartchoice.com'),
+    false,
+    'lib/structured-data.ts must NOT contain placeholder email'
+  );
+
+  // 3. Conditional rendering in app/layout.tsx
+  assert.ok(
+    layoutContent.includes('CONTACT_EMAIL ?'),
+    'app/layout.tsx must conditionally render contact email using CONTACT_EMAIL'
+  );
+
+  // 4. Structured data: omits email when CONTACT_EMAIL is empty
+  const schema = getOrganizationSchema();
+  if (!CONTACT_EMAIL) {
+    assert.equal(
+      'email' in schema.contactPoint,
+      false,
+      'Structured data contactPoint must omit email key entirely when CONTACT_EMAIL is empty'
+    );
+  } else {
+    assert.equal(
+      schema.contactPoint.email,
+      CONTACT_EMAIL,
+      'Structured data contactPoint must include email when CONTACT_EMAIL is set'
+    );
+  }
+});
+
+test('Rebrand to Paisavasooldaily: Navbar, Footer, Logo assets, and Metadata integrity', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+
+  // 1. Logo assets exist on disk
+  const logoFull = path.resolve(process.cwd(), 'public/brand/logo-full.png');
+  const logoBrand = path.resolve(process.cwd(), 'public/brand/logo.png');
+  const logoPublic = path.resolve(process.cwd(), 'public/logo.png');
+  assert.ok(fs.existsSync(logoFull), 'public/brand/logo-full.png must exist');
+  assert.ok(fs.existsSync(logoBrand), 'public/brand/logo.png must exist');
+  assert.ok(fs.existsSync(logoPublic), 'public/logo.png must exist');
+  assert.ok(fs.statSync(logoFull).size > 1000, 'Logo file must not be empty');
+
+  // 2. Navbar brand name and logo alt text
+  const navbarPath = path.resolve(process.cwd(), 'components/Navbar.tsx');
+  const navbarContent = fs.readFileSync(navbarPath, 'utf8');
+  assert.ok(navbarContent.includes('alt="Paisavasooldaily"'), 'Navbar logo alt must be Paisavasooldaily');
+  assert.ok(navbarContent.includes('Paisavasooldaily'), 'Navbar brand text must be Paisavasooldaily');
+  assert.ok(navbarContent.includes('aria-label="Paisavasooldaily Homepage"'), 'Navbar link aria-label must reference Paisavasooldaily');
+
+  // 3. Footer brand name, logo alt, and copyright in app/layout.tsx
+  const layoutPath = path.resolve(process.cwd(), 'app/layout.tsx');
+  const layoutContent = fs.readFileSync(layoutPath, 'utf8');
+  assert.ok(layoutContent.includes('alt="Paisavasooldaily"'), 'Footer logo alt must be Paisavasooldaily');
+  assert.ok(layoutContent.includes('aria-label="Paisavasooldaily Homepage"'), 'Footer link aria-label must reference Paisavasooldaily');
+  assert.ok(layoutContent.includes('© 2026 Paisavasooldaily. All rights reserved.'), 'Footer copyright must reference Paisavasooldaily');
+
+  // 4. Schema and Metadata branding
+  const orgSchema = getOrganizationSchema();
+  assert.equal(orgSchema.name, 'Paisavasooldaily', 'Organization schema name must be Paisavasooldaily');
+
+  const homeMeta = generateHomeMeta();
+  assert.ok(homeMeta.title.includes('Paisavasooldaily'), 'Home meta title must include Paisavasooldaily');
+});
+
+
+
+
 
 
 

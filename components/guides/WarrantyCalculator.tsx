@@ -28,7 +28,7 @@ interface Props {
 
 export default function WarrantyCalculator({
   ctaCollectionSlug = 'best-value',
-  ctaCollectionName = 'Shop Verified Durable Equipment',
+  ctaCollectionName = 'Shop Curated Durable Equipment',
 }: Props) {
   // Calculator State
   const [productPrice, setProductPrice] = useState<number>(15000);

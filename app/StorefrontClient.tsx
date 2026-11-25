@@ -6,6 +6,7 @@ import ProductCard from "@/components/ProductCard";
 import { CompareProvider } from "@/components/CompareProvider";
 import CompareArena from "@/components/CompareArena";
 import BeautyTrustShowcase from "@/components/BeautyTrustShowcase";
+import ProductSearchBox from "@/components/ProductSearchBox";
 import type { DbProduct } from "@/utils/supabase/types";
 
 export interface StorefrontClientProps {
@@ -205,8 +206,12 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
               Zero regrets.
             </h1>
             <p className="text-lg sm:text-xl text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed font-body">
-              Every product here is vetted for quality, value, and real-world performance. We only recommend what we&apos;d buy ourselves.
+              Researched from customer reviews and product specifications to help you compare real-world trade-offs.
             </p>
+
+            {/* Direct Multi-Store Search Box */}
+            <ProductSearchBox />
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center font-mono text-sm uppercase tracking-wider font-bold">
               <button
                 type="button"
@@ -236,16 +241,16 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
           {/* Trust Badges */}
           <div id="trust" className="relative mt-16 grid grid-cols-3 gap-4 max-w-2xl mx-auto text-center">
             <div className="p-4 bg-white/5 backdrop-blur rounded-lg border border-white/10">
-              <div className="text-2xl mb-2">⚡</div>
-              <p className="text-sm text-gray-300">Fast Shipping</p>
+              <div className="text-2xl mb-2">📊</div>
+              <p className="text-sm text-gray-300">Customer Reviews</p>
             </div>
             <div className="p-4 bg-white/5 backdrop-blur rounded-lg border border-white/10">
-              <div className="text-2xl mb-2">✓</div>
-              <p className="text-sm text-gray-300">100% Verified Picks</p>
+              <div className="text-2xl mb-2">⚖️</div>
+              <p className="text-sm text-gray-300">Clear Trade-Offs</p>
             </div>
             <div className="p-4 bg-white/5 backdrop-blur rounded-lg border border-white/10">
-              <div className="text-2xl mb-2">💰</div>
-              <p className="text-sm text-gray-300">Best Prices</p>
+              <div className="text-2xl mb-2">🔍</div>
+              <p className="text-sm text-gray-300">Spec Analysis</p>
             </div>
           </div>
         </section>
@@ -255,7 +260,7 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
           <div className="bg-gradient-to-r from-blue-900/40 via-purple-900/30 to-slate-900/50 border border-blue-500/30 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl backdrop-blur">
             <div>
               <span className="font-mono text-xs uppercase tracking-widest text-blue-400 font-bold block mb-1">
-                ⭐ Verified Buyer Collections
+                ⭐ Curated Product Collections
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                 Explore Themed Product Collections
@@ -393,7 +398,7 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
             </div>
           </div>
 
-          {/* High-conversion Anti-Adulteration & Routine Guarantee Banner in Beauty & Fashion Tab (100% Crawlable by Googlebot) */}
+          {/* High-conversion Beauty & Fashion Routine Showcase (100% Crawlable by Googlebot) */}
           <div
             className={activeTab === "beauty" ? "block" : "sr-only"}
             data-seo-crawlable="true"
@@ -418,7 +423,7 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
                 {activeTab === "all"
                   ? "Ranked by real customer choices • Qualitative Anti-Regret analysis"
                   : activeTab === "beauty"
-                    ? "Anti-adulteration certified routine picks for men & women"
+                    ? "Review-based daily routine picks for men & women"
                     : "Charging, travel ergonomics & workstation performance gear"}
               </p>
             </div>
@@ -513,7 +518,7 @@ export default function StorefrontClient({ initialProducts = [] }: StorefrontCli
         <footer className="relative px-4 py-8 border-t border-white/10">
           <div className="max-w-7xl mx-auto text-center text-sm text-gray-500">
             <p>We earn an affiliate commission when you purchase through links on this site. This helps us provide free, unbiased product recommendations.</p>
-            <p className="mt-2">Join thousands of smart shoppers saving time and money on quality products.</p>
+            <p className="mt-2">Research-backed product recommendations saving you time before you buy.</p>
           </div>
         </footer>
 

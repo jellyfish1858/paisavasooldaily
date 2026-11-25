@@ -4,7 +4,7 @@ import BeautyWelcomePopup from "@/components/BeautyWelcomePopup";
 import InstagramFollowCard from "@/components/InstagramFollowCard";
 import Link from "next/link";
 import Image from "next/image";
-import { getSiteUrl } from "@/config/site";
+import { getSiteUrl, CONTACT_EMAIL } from "@/config/site";
 import { getOrganizationSchema } from "@/lib/structured-data";
 import "./globals.css";
 
@@ -17,15 +17,15 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   title: {
-    default: "SmartChoice Storefront — Curated Product Picks & Anti-Regret Research",
-    template: "%s | SmartChoice Storefront",
+    default: "Paisavasooldaily — Curated Product Picks & Anti-Regret Research",
+    template: "%s | Paisavasooldaily",
   },
   description:
-    "Unbiased editorial product research, comprehensive Anti-Regret matrix analysis, and verified recommendations across Beauty, Grooming & Fashion lifestyle for men and women, plus Tech & Accessories in India.",
+    "Unbiased editorial product research, comprehensive Anti-Regret matrix analysis of customer reviews and product specifications, and curated recommendations across Beauty, Grooming & Fashion lifestyle for men and women, plus Tech & Accessories in India.",
   keywords: [
-    "SmartChoice Storefront",
-    "Verified Beauty and Fashion picks",
-    "Zero-adulteration seller guarantee India",
+    "Paisavasooldaily",
+    "Beauty and Fashion picks",
+    "Direct retailer links with customer review insights",
     "Daily skincare grooming lifestyle for women and men",
     "Electronics and tech accessories India",
     "Anti-regret buying guides",
@@ -40,11 +40,11 @@ export const metadata: Metadata = {
     google: "OBLUySHXK_7EiNkxlTYKoSKvj12e2zyk_VrxoKNro7k",
   },
   openGraph: {
-    title: "SmartChoice Storefront — Curated Product Picks & Anti-Regret Research",
+    title: "Paisavasooldaily — Curated Product Picks & Anti-Regret Research",
     description:
-      "Unbiased editorial product research, comprehensive Anti-Regret matrix analysis, and verified recommendations across Beauty, Fashion, Grooming, and Tech Accessories in India.",
+      "Unbiased editorial product research, comprehensive Anti-Regret matrix analysis of customer reviews and product specifications, and curated recommendations across Beauty, Fashion, Grooming, and Tech Accessories in India.",
     url: getSiteUrl(),
-    siteName: "SmartChoice Storefront",
+    siteName: "Paisavasooldaily",
     locale: "en_IN",
     type: "website",
     images: [
@@ -52,15 +52,15 @@ export const metadata: Metadata = {
         url: `${getSiteUrl()}/og-default.jpg`,
         width: 1200,
         height: 630,
-        alt: "SmartChoice Storefront — Curated Product Picks & Editorial Research",
+        alt: "Paisavasooldaily — Curated Product Picks & Editorial Research",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SmartChoice Storefront — Curated Product Picks & Anti-Regret Research",
+    title: "Paisavasooldaily — Curated Product Picks & Anti-Regret Research",
     description:
-      "Unbiased editorial product research, comprehensive Anti-Regret matrix analysis, and verified recommendations across Beauty, Fashion, Grooming, and Tech Accessories in India.",
+      "Unbiased editorial product research, comprehensive Anti-Regret matrix analysis of customer reviews and product specifications, and curated recommendations across Beauty, Fashion, Grooming, and Tech Accessories in India.",
     images: [`${getSiteUrl()}/og-default.jpg`],
   },
   robots: {
@@ -87,6 +87,10 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
+        <meta
+          name="google-site-verification"
+          content="pm5FrcDkqEdg4GK4xyU18KhC7xoceMCfzHVOfjDChEg"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
@@ -102,18 +106,18 @@ export default function RootLayout({
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
               {/* Brand */}
               <div>
-                <Link href="/" className="inline-flex items-center gap-2.5 mb-3 group focus:outline-none" aria-label="SmartChoice Homepage">
+                <Link href="/" className="inline-flex items-center gap-2.5 mb-3 group focus:outline-none" aria-label="Paisavasooldaily Homepage">
                   <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-white/15 shadow-sm shrink-0">
                     <Image
                       src="/brand/logo-full.png"
-                      alt="SmartChoice"
+                      alt="Paisavasooldaily"
                       fill
                       sizes="32px"
                       className="object-cover group-hover:scale-105 transition-transform"
                     />
                   </div>
                   <span className="text-white font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-blue-300">
-                    SmartChoice
+                    Paisavasooldaily
                   </span>
                 </Link>
                 <p className="text-slate-400 text-sm leading-relaxed">
@@ -174,9 +178,11 @@ export default function RootLayout({
               <div>
                 <h5 className="text-white font-semibold mb-3">Contact</h5>
                 <p className="text-slate-400 text-sm mb-2">Questions? We&apos;re here to help.</p>
-                <a href="mailto:hello@smartchoice.com" className="text-blue-400 hover:text-blue-300 transition-colors text-sm">
-                  hello@smartchoice.com
-                </a>
+                {CONTACT_EMAIL ? (
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="text-blue-400 hover:text-blue-300 transition-colors text-sm block mb-1">
+                    {CONTACT_EMAIL}
+                  </a>
+                ) : null}
                 <InstagramFollowCard />
               </div>
             </div>
@@ -184,7 +190,7 @@ export default function RootLayout({
             {/* Divider */}
             <div className="border-t border-white/10 pt-8">
               <div className="text-center text-slate-500 text-sm">
-                <p>© 2026 SmartChoice. All rights reserved.</p>
+                <p>© 2026 Paisavasooldaily. All rights reserved.</p>
                 <p className="mt-2">We earn affiliate commissions to provide free, unbiased product recommendations.</p>
               </div>
             </div>

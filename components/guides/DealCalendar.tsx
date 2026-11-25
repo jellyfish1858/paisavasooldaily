@@ -307,7 +307,7 @@ export default function DealCalendar({
             Looking for deals right now?
           </h4>
           <p className="text-xs sm:text-sm text-slate-300">
-            Check out our algorithmically tracked trending picks with verified historical discounts.
+            Check out our curated trending picks with seasonal discount context.
           </p>
         </div>
         <Link

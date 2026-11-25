@@ -24,11 +24,11 @@ export function generateMetadata(): Metadata {
   const siteUrl = getSiteUrl();
   const ogImage = `${siteUrl}/og-default.jpg`;
   return {
-    title: "Interactive Buying Guides & Decision Frameworks | SmartChoice",
+    title: "Interactive Buying Guides & Decision Frameworks | Paisavasooldaily",
     description:
       "Interactive checklists, review evaluation quizzes, decision trees, shopping calendars, and warranty comparison tools to make confident purchasing decisions.",
     openGraph: {
-      title: "Interactive Buying Guides & Decision Frameworks | SmartChoice",
+      title: "Interactive Buying Guides & Decision Frameworks | Paisavasooldaily",
       description:
         "Interactive decision tools, quality inspection checklists, and trade-off calculators to avoid buyer regret.",
       url: `${siteUrl}/guides`,
@@ -38,13 +38,13 @@ export function generateMetadata(): Metadata {
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: "SmartChoice Storefront - Interactive Buying Guides & Decision Frameworks",
+          alt: "Paisavasooldaily - Interactive Buying Guides & Decision Frameworks",
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Interactive Buying Guides & Decision Frameworks | SmartChoice",
+      title: "Interactive Buying Guides & Decision Frameworks | Paisavasooldaily",
       description:
         "Interactive decision tools, quality inspection checklists, and trade-off calculators to avoid buyer regret.",
       images: [ogImage],

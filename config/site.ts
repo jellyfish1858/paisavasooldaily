@@ -16,14 +16,21 @@ export function getSiteUrl(): string {
     return "http://localhost:3000";
   }
 
-  // Canonical production URL for SmartChoice Storefront
+  // Canonical production URL for Paisavasooldaily
   return "https://smartchoice-storefront.smartchoice.workers.dev";
 }
 
 export const SITE_CONFIG = {
-  name: "SmartChoice Storefront",
-  shortName: "SmartChoice",
+  name: "Paisavasooldaily",
+  shortName: "Paisavasooldaily",
   description:
     "Independent editorial product research, Anti-Regret matrix analysis, and decision support before purchasing.",
   defaultOgImage: "/og-default.jpg",
 } as const;
+
+/**
+ * Public Contact Email configuration
+ * Read from NEXT_PUBLIC_CONTACT_EMAIL env var.
+ * When empty or unset, visible contact line is hidden and omitted from structured data.
+ */
+export const CONTACT_EMAIL = (process.env.NEXT_PUBLIC_CONTACT_EMAIL || "").trim();

@@ -88,7 +88,7 @@ export default function BeautyWelcomePopup() {
           {/* Header Badge */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-pink-500/10 border border-pink-500/30 text-pink-300 mb-4 shadow-sm">
             <span>✨</span>
-            <span>NEW ON SMARTCHOICE • FOR MEN &amp; WOMEN</span>
+            <span>NEW ON PAISAVASOOLDAILY • FOR MEN &amp; WOMEN</span>
           </div>
 
           {/* Headline */}
@@ -96,12 +96,12 @@ export default function BeautyWelcomePopup() {
             id="welcome-popup-title"
             className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-snug mb-3"
           >
-            Discover Our Verified Beauty, Grooming &amp; Fashion Hub
+            Discover Our Beauty, Grooming &amp; Fashion Hub
           </h2>
 
           {/* Persuasive Hook with Daily Lifestyle Focus */}
           <p className="text-slate-300 text-xs sm:text-sm leading-relaxed mb-6 font-body">
-            The everyday beauty, grooming &amp; fashion staples most women and men actually use in their daily lifestyle — linked strictly to 100% original, non-adulterated stock. When marketplace brand stores go out of stock, checkout often <strong>silently routes orders to unverified third-party sellers</strong> shipping adulterated or fake formulas. On SmartChoice, every link is strictly verified to point only to authorized brand inventory.
+            The everyday beauty, grooming &amp; fashion staples most women and men actually use in their daily lifestyle — researched from customer reviews and product specifications. Instead of navigating confusing marketplace listings, Paisavasooldaily provides direct retailer links and highlights real trade-offs so you can shop with confidence.
           </p>
 
           {/* Quick Visual Highlights */}
@@ -117,8 +117,8 @@ export default function BeautyWelcomePopup() {
             <div className="flex items-start gap-3">
               <span className="text-base shrink-0">🛡️</span>
               <div>
-                <p className="text-xs font-bold text-white">Zero-Adulteration Seller Links</p>
-                <p className="text-[11px] text-slate-400">Strictly authorized brand stores &amp; verified official distributors only.</p>
+                <p className="text-xs font-bold text-white">Direct Retailer Links</p>
+                <p className="text-[11px] text-slate-400">Popular marketplace listings linked directly with clear customer feedback and specs.</p>
               </div>
             </div>
 
@@ -134,7 +134,7 @@ export default function BeautyWelcomePopup() {
               <span className="text-base shrink-0">🔄</span>
               <div>
                 <p className="text-xs font-bold text-white">Your Monthly Restock Shortcut</p>
-                <p className="text-[11px] text-slate-400">Skip risky marketplace search clutter—reorder verified originals in 1 click.</p>
+                <p className="text-[11px] text-slate-400">Skip marketplace search clutter—explore curated picks in 1 click.</p>
               </div>
             </div>
           </div>

@@ -26,11 +26,11 @@ export default async function StorefrontHome() {
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "SmartChoice Storefront",
+    name: "Paisavasooldaily",
     url: baseUrl,
     inLanguage: "en-IN",
     description:
-      "Independent editorial product research, Anti-Regret matrix analysis, and verified product recommendations across Beauty & Fashion and Tech & Accessories in India.",
+      "Independent editorial product research, Anti-Regret matrix analysis of customer reviews and product specifications, and curated product recommendations across Beauty & Fashion and Tech & Accessories in India.",
     potentialAction: {
       "@type": "SearchAction",
       target: `${baseUrl}/?q={search_term_string}`,
@@ -41,20 +41,20 @@ export default async function StorefrontHome() {
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "SmartChoice Storefront",
+    name: "Paisavasooldaily",
     url: baseUrl,
     logo: `${baseUrl}/brand/logo-full.png`,
     description:
-      "Independent editorial product research, Anti-Regret matrix analysis, and decision support before purchasing across Tech & Accessories, Travel, and Beauty & Fashion in India.",
+      "Independent editorial product research, Anti-Regret matrix analysis of customer reviews and product specifications, and decision support before purchasing across Tech & Accessories, Travel, and Beauty & Fashion in India.",
     inLanguage: "en-IN",
     areaServed: {
       "@type": "Country",
       name: "India",
     },
     knowsAbout: [
-      "Verified Beauty & Skincare Staples",
+      "Beauty & Skincare Staples",
       "Daily Grooming for Men & Women",
-      "Zero-Adulteration Marketplace Seller Link Verification",
+      "Direct Marketplace Seller Links",
       "Electronics & Tech Accessories",
       "Anti-Regret Consumer Research",
     ],
@@ -67,7 +67,7 @@ export default async function StorefrontHome() {
     itemListElement: products.slice(0, 10).map((product, index) => ({
       "@type": "ListItem",
       position: index + 1,
-      name: product.title,
+      name: (product.title || "Curated Product").replace(/^PRODUCT TITLE:\s*/i, "").trim(),
       url: `${baseUrl}/product/${product.slug || product.id}`,
     })),
   };

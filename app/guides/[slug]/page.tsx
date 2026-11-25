@@ -93,7 +93,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             url: ogImage,
             width: 1200,
             height: 630,
-            alt: `${interactiveGuide.title} - SmartChoice Interactive Guide`,
+            alt: `${interactiveGuide.title} - Paisavasooldaily Interactive Guide`,
           },
         ],
       },
@@ -127,7 +127,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             url: ogImage,
             width: 1200,
             height: 630,
-            alt: `${technicalGuide.title} - SmartChoice Storefront Buying Guide`,
+            alt: `${technicalGuide.title} - Paisavasooldaily Buying Guide`,
           },
         ],
       },
@@ -170,7 +170,7 @@ export default async function BuyingGuideDetailPage({ params }: Props) {
       url: canonicalUrl,
       publisher: {
         "@type": "Organization",
-        name: "SmartChoice Storefront",
+        name: "Paisavasooldaily",
         url: baseUrl,
         logo: `${baseUrl}/brand/logo-full.png`,
       },
@@ -448,7 +448,7 @@ export default async function BuyingGuideDetailPage({ params }: Props) {
     },
     publisher: {
       "@type": "Organization",
-      name: "SmartChoice Storefront",
+      name: "Paisavasooldaily",
       url: baseUrl,
       logo: `${baseUrl}/brand/logo-full.png`,
     },
@@ -662,7 +662,7 @@ export default async function BuyingGuideDetailPage({ params }: Props) {
         <section aria-labelledby="checklist-heading" className="border-2 border-line bg-paper p-6 sm:p-8 shadow-hard space-y-4">
           <div className="border-b-2 border-line pb-3">
             <span className="font-mono text-[11px] uppercase tracking-widest2 text-accent font-bold block mb-1">
-              Verification Steps
+              Checklist Steps
             </span>
             <h2 id="checklist-heading" className="font-display text-2xl font-bold uppercase tracking-tight text-ink">
               Practical Pre-Purchase Checklist

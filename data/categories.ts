@@ -46,7 +46,7 @@ export const CATEGORIES: Category[] = [
         "Travel gear balances packing volume, baseline tare weight, hardware resilience, and airline dimensional constraints across transit environments.",
       details: [
         "Evaluating luggage, backpacks, and packing organizers involves inspecting shell polymers, zipper gauges, load distribution ergonomics, and airline carry-on allowances.",
-        "We compare published exterior dimensions, tare weights, compartment layouts, and material durability based on verified manufacturer specifications.",
+        "We compare published exterior dimensions, tare weights, compartment layouts, and material durability based on published manufacturer specifications.",
       ],
     },
     whatMatters: [
@@ -169,7 +169,7 @@ export const CATEGORIES: Category[] = [
     shortName: "Electronics & Tech",
     tagline: "GaN chargers, high-wattage power banks, certified cables, and ergonomic tech gear compared.",
     description:
-      "Buying considerations, power protocol verification, and Anti-Regret decision support for USB-PD chargers, power banks, cables, and workstation accessories.",
+      "Buying considerations, power protocol compatibility, and Anti-Regret decision support for USB-PD chargers, power banks, cables, and workstation accessories.",
     intro: {
       lead:
         "Modern tech accessories balance charging standards, thermal dissipation, ergonomic comfort, and multi-device interoperability.",

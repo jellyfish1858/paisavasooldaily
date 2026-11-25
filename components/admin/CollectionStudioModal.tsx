@@ -511,7 +511,7 @@ export default function CollectionStudioModal({
   const handleRemoveProduct = async (cp: DbCollectionProduct) => {
     const productName = cp.product?.title || "this product";
     const confirmed = window.confirm(
-      `Remove this product from the collection? The product will remain in the SmartChoice catalog.`
+      `Remove this product from the collection? The product will remain in the Paisavasooldaily catalog.`
     );
     if (!confirmed) return;
 

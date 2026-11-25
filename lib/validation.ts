@@ -1,5 +1,5 @@
 /**
- * Validation utilities for SmartChoice Storefront.
+ * Validation utilities for Paisavasooldaily.
  */
 
 /**

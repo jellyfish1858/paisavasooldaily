@@ -6,20 +6,20 @@ export function generateMetadata(): Metadata {
   const siteUrl = getSiteUrl();
   const title = "Privacy Policy & Disclosures";
   const description =
-    "Privacy policy, tracking disclosures, and affiliate disclosures for SmartChoice Storefront.";
+    "Privacy policy, tracking disclosures, and affiliate disclosures for Paisavasooldaily.";
 
   return {
     title,
     description,
     openGraph: {
-      title: `${title} | SmartChoice Storefront`,
+      title: `${title} | Paisavasooldaily`,
       description,
       url: `${siteUrl}/privacy-policy`,
       type: "website",
     },
     twitter: {
       card: "summary",
-      title: `${title} | SmartChoice Storefront`,
+      title: `${title} | Paisavasooldaily`,
       description,
     },
     alternates: {
@@ -63,7 +63,7 @@ export default function PrivacyPolicyPage() {
               Amazon Associates Mandatory Identification:
             </p>
             <p>
-              SmartChoice Storefront is a participant in the Amazon Services LLC Associates Program (including Amazon.in and Amazon.com), an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.
+              Paisavasooldaily is a participant in the Amazon Services LLC Associates Program (including Amazon.in and Amazon.com), an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.
             </p>
             <p className="font-bold text-ink">
               As an Amazon Associate I earn from qualifying purchases.
@@ -79,7 +79,7 @@ export default function PrivacyPolicyPage() {
             2. Cookies and Tracking Technologies
           </h2>
           <p>
-            When you click outbound affiliate links leading to Amazon or third-party retailer platforms, those third-party sites use browser cookies to track referral traffic and attribute qualifying transactions within their standard attribution windows. SmartChoice does not store identifying tracking data, credit card information, or personal profile records on our servers.
+            When you click outbound affiliate links leading to Amazon or third-party retailer platforms, those third-party sites use browser cookies to track referral traffic and attribute qualifying transactions within their standard attribution windows. Paisavasooldaily does not store identifying tracking data, credit card information, or personal profile records on our servers.
           </p>
         </section>
 

@@ -156,7 +156,7 @@ export default function ClicksDashboard({
           </div>
           <div className="mt-4 pt-4 border-t border-line/20">
             <p className="font-mono text-xs text-muted">
-              Verified clicks routed to partner retailer product listings.
+              Outbound clicks routed to partner retailer product listings.
             </p>
           </div>
         </div>

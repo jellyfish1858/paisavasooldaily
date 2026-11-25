@@ -71,6 +71,7 @@ export default async function ProductDetailPage({
   // Normalize properties
   const product = {
     ...rawProduct,
+    title: (rawProduct.title || '').replace(/^PRODUCT TITLE:\s*/i, '').trim(),
     imageUrl: rawProduct.image_url || (rawProduct as any).imageUrl || '',
     retailerUrl:
       rawProduct.retailer_url ||
@@ -231,7 +232,7 @@ export default async function ProductDetailPage({
                     Highly Recommended Pick
                   </span>
                   <span className="text-slate-500">•</span>
-                  <span className="text-xs text-slate-400">Anti-Regret Verified</span>
+                  <span className="text-xs text-slate-400">Anti-Regret Analysis</span>
                 </div>
 
                 {/* Quick Take */}
@@ -279,7 +280,7 @@ export default async function ProductDetailPage({
               {product.pros && product.pros.length > 0 && (
                 <div className="bg-slate-900/60 border border-green-500/20 rounded-xl p-6">
                   <h3 className="text-base font-bold text-green-400 mb-4 flex items-center gap-2">
-                    <span>✓</span> Verified Strengths (Pros)
+                    <span>✓</span> Key Strengths (Pros)
                   </h3>
                   <ul className="space-y-2.5">
                     {product.pros.map((pro: string, i: number) => (

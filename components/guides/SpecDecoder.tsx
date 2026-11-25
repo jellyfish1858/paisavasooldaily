@@ -22,7 +22,7 @@ interface Props {
 
 export default function SpecDecoder({
   ctaCollectionSlug = 'premium-picks',
-  ctaCollectionName = 'View Verified High-Spec Hardware',
+  ctaCollectionName = 'View Curated High-Spec Hardware',
 }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -488,10 +488,10 @@ export default function SpecDecoder({
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-blue-900/30 via-slate-900 to-purple-900/30 border border-blue-500/30 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="space-y-1.5 text-center sm:text-left">
           <h4 className="text-lg font-extrabold text-white">
-            Ready to find hardware with real, verified specs?
+            Ready to find hardware with clear, realistic specs?
           </h4>
           <p className="text-xs sm:text-sm text-slate-300">
-            Every product in our curated collection has been tested for true continuous ratings.
+            Every product in our curated collection is researched from customer reviews and product specifications for realistic continuous ratings.
           </p>
         </div>
         <Link

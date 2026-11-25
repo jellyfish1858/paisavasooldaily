@@ -83,12 +83,17 @@ export default function FloatingCTA({
         </div>
       </div>
 
-      <button
-        onClick={handleClick}
-        className="flex-shrink-0 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 active:scale-95 text-white font-mono text-xs uppercase tracking-wider font-bold rounded-lg shadow-md shadow-blue-600/30 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 animate-pulse"
-      >
-        Check Price →
-      </button>
+      <div className="flex-shrink-0 flex flex-col items-center">
+        <button
+          onClick={handleClick}
+          className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 active:scale-95 text-white font-mono text-xs uppercase tracking-wider font-bold rounded-lg shadow-md shadow-blue-600/30 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 animate-pulse"
+        >
+          Check Price →
+        </button>
+        <span className="text-[9px] text-slate-400 font-mono mt-0.5">
+          Paid affiliate link
+        </span>
+      </div>
     </aside>
   );
 }

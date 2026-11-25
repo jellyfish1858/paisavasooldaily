@@ -184,6 +184,9 @@ function CompareColumn({
             variant="arena-button"
             label="Check Price ↗"
           />
+          <p className="font-mono text-[10px] text-muted text-center pt-1">
+            Affiliate link (earns commission)
+          </p>
         </div>
       </div>
     </div>

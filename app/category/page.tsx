@@ -25,7 +25,7 @@ export function generateMetadata(): Metadata {
           url: ogImage,
           width: 1200,
           height: 630,
-          alt: "SmartChoice Storefront - Product Categories & Decision Frameworks",
+          alt: "Paisavasooldaily - Product Categories & Decision Frameworks",
         },
       ],
     },
@@ -96,7 +96,7 @@ export default function CategoriesDirectoryPage() {
           </h1>
 
           <p className="font-body text-sm sm:text-base text-muted max-w-2xl leading-relaxed">
-            SmartChoice organizes product research into focused categories. Each category synthesizes published manufacturer specifications, common buyer trade-offs, and curated catalogs to help you evaluate options.
+            Paisavasooldaily organizes product research into focused categories. Each category synthesizes published manufacturer specifications, common buyer trade-offs, and curated catalogs to help you evaluate options.
           </p>
         </header>
 

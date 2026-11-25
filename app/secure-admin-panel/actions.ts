@@ -37,7 +37,10 @@ export { extractUnmappedSchemaColumn };
 
 function stripProductMeta(text?: string | null): string {
   if (!text || typeof text !== "string") return "";
-  return text.replace(/<!--\s*PRODUCT_META:\s*[\s\S]*?-->/gi, "").trim();
+  return text
+    .replace(/<!--\s*PRODUCT_META:\s*[\s\S]*?-->/gi, "")
+    .replace(/^PRODUCT TITLE:\s*/i, "")
+    .trim();
 }
 
 function toCleanStringArray(val: any): string[] {

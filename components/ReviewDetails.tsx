@@ -259,7 +259,7 @@ export default function ReviewDetails({ product }: { product: DbProduct | any })
 
             <div className="text-right">
               <span className="font-mono text-[11px] text-muted block">
-                Direct retailer link • Verification before checkout recommended
+                Direct retailer link • Check specs and seller ratings before checkout
               </span>
             </div>
           </div>
@@ -294,7 +294,7 @@ export default function ReviewDetails({ product }: { product: DbProduct | any })
           ========================================================================= */}
       <section aria-labelledby="key-specs-heading" className="border-2 border-line bg-panel p-6 sm:p-8 shadow-hard">
         <span className="font-mono text-[11px] uppercase tracking-widest2 text-accent font-bold block mb-2">
-          Verified Characteristics
+          Key Characteristics
         </span>
         <h2 id="key-specs-heading" className="font-display text-2xl font-bold uppercase tracking-tight text-ink mb-4">
           Key Specifications
@@ -312,7 +312,7 @@ export default function ReviewDetails({ product }: { product: DbProduct | any })
           </div>
         ) : (
           <div className="border border-line bg-paper p-4 font-mono text-xs text-muted">
-            Specification verification in progress. Refer to official manufacturer documentation for unconfirmed parameters.
+            Specifications sourced from manufacturer documentation and retailer listings.
           </div>
         )}
       </section>
@@ -442,7 +442,7 @@ export default function ReviewDetails({ product }: { product: DbProduct | any })
           ========================================================================= */}
       <section aria-labelledby="what-to-check-heading" className="border-2 border-line bg-panel p-6 sm:p-8 shadow-hard">
         <span className="font-mono text-[11px] uppercase tracking-widest2 text-accent font-bold block mb-1">
-          Pre-Purchase Verification
+          Pre-Purchase Checklist
         </span>
         <h2 id="what-to-check-heading" className="font-display text-2xl font-bold uppercase tracking-tight text-ink mb-4">
           What to Check Before Buying
@@ -475,7 +475,7 @@ export default function ReviewDetails({ product }: { product: DbProduct | any })
             Anti-Regret Matrix
           </h2>
           <p className="font-body text-xs sm:text-sm text-muted mt-2 leading-relaxed">
-            The Anti-Regret Matrix highlights the factors that may matter most when deciding whether this product fits your needs. Each assessment represents an editorial analysis based on published specifications and comparison research.
+            The Anti-Regret Matrix highlights the factors that may matter most when deciding whether this product fits your needs. Each assessment represents an editorial analysis of customer reviews and product specifications.
           </p>
         </div>
 

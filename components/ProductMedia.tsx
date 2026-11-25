@@ -21,7 +21,7 @@ export default function ProductMedia({ mediaUrl, productTitle }: ProductMediaPro
           <div className="flex items-center gap-2">
             <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
             <span className="font-mono text-xs uppercase tracking-wider text-slate-300 font-bold">
-              Verified Video Review & Demo
+              Video Overview &amp; Demo
             </span>
           </div>
           <a
@@ -70,10 +70,10 @@ export default function ProductMedia({ mediaUrl, productTitle }: ProductMediaPro
             </div>
             <div>
               <span className="font-mono text-xs uppercase tracking-wider text-pink-300 font-bold block">
-                Verified Social Proof
+                Product Showcase
               </span>
               <span className="text-[11px] text-slate-400">
-                Real-world product demonstration & breakdown
+                Real-world product demonstration &amp; breakdown
               </span>
             </div>
           </div>
@@ -87,7 +87,7 @@ export default function ProductMedia({ mediaUrl, productTitle }: ProductMediaPro
           rel="noopener noreferrer"
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 px-4 py-3 font-mono text-xs uppercase tracking-wider font-bold text-white shadow-lg transition-transform hover:scale-[1.01] active:scale-[0.99]"
         >
-          <span>Watch Verified Product Reel / Video ↗</span>
+          <span>Watch Product Reel / Video ↗</span>
         </a>
       </div>
     );
@@ -100,7 +100,7 @@ export default function ProductMedia({ mediaUrl, productTitle }: ProductMediaPro
         <div className="flex items-center gap-2">
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500" />
           <span className="font-mono text-xs uppercase tracking-wider text-slate-300 font-bold">
-            Verified Media / Social Proof
+            Media Overview
           </span>
         </div>
         <a
@@ -109,7 +109,7 @@ export default function ProductMedia({ mediaUrl, productTitle }: ProductMediaPro
           rel="noopener noreferrer"
           className="text-xs text-blue-400 hover:text-blue-300 font-mono inline-flex items-center gap-1 transition-colors"
         >
-          Watch Verified Video ↗
+          Watch Video Overview ↗
         </a>
       </div>
     </div>

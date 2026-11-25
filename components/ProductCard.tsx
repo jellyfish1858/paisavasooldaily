@@ -27,7 +27,7 @@ export function ProductCard({
     '';
   const quickTake = product.quickTake || product.quick_take || product.description || '';
   const badge = product.badge || null;
-  const title = product.title || 'Curated Product';
+  const title = (product.title || 'Curated Product').replace(/^PRODUCT TITLE:\s*/i, '').trim();
   const targetId = product.slug || product.id;
 
   const isLimitedTime =
@@ -136,7 +136,7 @@ export function ProductCard({
 
               <span className="text-[10px] text-green-400 font-mono font-bold flex items-center gap-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-                Verified
+                Research Pick
               </span>
             </div>
           </div>
@@ -151,6 +151,9 @@ export function ProductCard({
             <span>Check Price</span>
             <span aria-hidden="true" className="group-hover:translate-x-0.5 transition-transform">→</span>
           </button>
+          <p className="text-[10px] text-slate-400 text-center mt-1.5 font-mono">
+            Affiliate link (earns commission)
+          </p>
         </div>
       </div>
     </Link>

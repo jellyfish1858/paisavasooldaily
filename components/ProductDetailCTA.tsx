@@ -53,14 +53,14 @@ export default function ProductDetailCTA({
 
       {/* Trust Badge Footer Line */}
       <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-2 pt-1 font-mono">
-        <div className="flex items-center gap-1.5 text-green-400 font-semibold">
+        <div className="flex items-center gap-1.5 text-slate-300 font-semibold">
           <span>✓</span>
-          <span>Quality Assured</span>
+          <span>Review &amp; Spec Analysis</span>
           <span className="text-slate-600">•</span>
-          <span className="text-slate-300">Verified Purchase Data</span>
+          <span className="text-slate-400">Clear Trade-Offs</span>
         </div>
-        <p className="text-[11px] text-gray-500 text-center sm:text-right">
-          Affiliate commissions support our free research.
+        <p className="text-[11px] text-gray-400 text-center sm:text-right">
+          As an affiliate, we earn from qualifying purchases.
         </p>
       </div>
     </div>
