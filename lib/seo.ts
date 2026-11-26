@@ -14,7 +14,7 @@ function resolveBaseUrl(customUrl?: string): string {
   if (process.env.NODE_ENV === "development") {
     return "http://localhost:3000";
   }
-  return "https://paisavasooldaily.paisavasooldaily.workers.dev";
+  return "https://paisavasooldaily.worthly.workers.dev";
 }
 
 export interface SeoMetaResult {

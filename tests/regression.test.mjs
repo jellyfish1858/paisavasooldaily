@@ -170,7 +170,7 @@ import { getSiteUrl } from '../config/site.ts';
 
 test('getSiteUrl returns canonical production URL without trailing slash', () => {
   const url = getSiteUrl();
-  assert.equal(url, 'https://paisavasooldaily.paisavasooldaily.workers.dev');
+  assert.equal(url, 'https://paisavasooldaily.worthly.workers.dev');
   assert.equal(url.endsWith('/'), false, 'Canonical site URL must not have a trailing slash');
 });
 
@@ -217,7 +217,7 @@ test('Editorial Collections: Detail page metadata generates noindex/nofollow for
     return {
       title: `${collection.title} — Curated Collection`,
       robots: { index: true, follow: true },
-      canonical: `https://paisavasooldaily.paisavasooldaily.workers.dev/collections/${collection.slug}`,
+      canonical: `https://paisavasooldaily.worthly.workers.dev/collections/${collection.slug}`,
     };
   }
 
@@ -230,7 +230,7 @@ test('Editorial Collections: Detail page metadata generates noindex/nofollow for
   assert.equal(pubMeta.robots.index, true);
   assert.equal(
     pubMeta.canonical,
-    'https://paisavasooldaily.paisavasooldaily.workers.dev/collections/top-travel-gear'
+    'https://paisavasooldaily.worthly.workers.dev/collections/top-travel-gear'
   );
 
   // Draft
@@ -261,7 +261,7 @@ test('Editorial Collections: Detail page metadata generates noindex/nofollow for
 // 4. Sitemap Generation Resilience & Sanitization
 // -----------------------------------------------------------------------------
 test('Sitemap URL generator correctly builds canonical loc elements and filters invalid records', () => {
-  const baseUrl = 'https://paisavasooldaily.paisavasooldaily.workers.dev';
+  const baseUrl = 'https://paisavasooldaily.worthly.workers.dev';
   const products = [
     { slug: 'product-a', updated_at: '2026-10-20T10:00:00Z' },
     { slug: 'product-b', updated_at: null },
@@ -364,7 +364,7 @@ test('Anti-Regret Matrix safely scores attributes without throwing on missing fi
 test('Robots configuration disallows admin and query routes while allowing public crawling', async () => {
   const fs = await import('node:fs');
   const path = await import('node:path');
-  const baseUrl = 'https://paisavasooldaily.paisavasooldaily.workers.dev';
+  const baseUrl = 'https://paisavasooldaily.worthly.workers.dev';
   const robotsConfig = {
     rules: {
       userAgent: '*',
@@ -684,10 +684,10 @@ import {
 } from '../lib/structured-data.ts';
 
 test('generateHomeMeta generates canonical, og, and twitter tags', () => {
-  const meta = generateHomeMeta('https://paisavasooldaily.paisavasooldaily.workers.dev');
+  const meta = generateHomeMeta('https://paisavasooldaily.worthly.workers.dev');
   assert.ok(meta.title.includes('Paisavasooldaily'));
   assert.ok(meta.description.length > 20);
-  assert.equal(meta.canonical, 'https://paisavasooldaily.paisavasooldaily.workers.dev');
+  assert.equal(meta.canonical, 'https://paisavasooldaily.worthly.workers.dev');
   assert.equal(meta.ogType, 'website');
   assert.ok(meta.ogImage.includes('og-default.jpg'));
   assert.equal(meta.twitter.card, 'summary_large_image');
@@ -704,7 +704,7 @@ test('generateProductMeta generates dynamic meta title with category and descrip
     image_url: 'https://example.com/sony.jpg',
   };
 
-  const meta = generateProductMeta(mockProduct, 'https://paisavasooldaily.paisavasooldaily.workers.dev');
+  const meta = generateProductMeta(mockProduct, 'https://paisavasooldaily.worthly.workers.dev');
   assert.equal(
     meta.title,
     'Sony WH-1000XM5 Wireless Headphones | Electronics & Tech Accessories | Paisavasooldaily'
@@ -713,7 +713,7 @@ test('generateProductMeta generates dynamic meta title with category and descrip
   assert.ok(meta.description.includes('Battery: 30 hours'));
   assert.equal(
     meta.canonical,
-    'https://paisavasooldaily.paisavasooldaily.workers.dev/product/sony-wh-1000xm5'
+    'https://paisavasooldaily.worthly.workers.dev/product/sony-wh-1000xm5'
   );
   assert.equal(meta.ogImage, 'https://example.com/sony.jpg');
 });
@@ -726,18 +726,18 @@ test('generateCollectionMeta generates dynamic meta title and description with p
     count: 12,
   };
 
-  const meta = generateCollectionMeta(mockCollection, 'https://paisavasooldaily.paisavasooldaily.workers.dev');
+  const meta = generateCollectionMeta(mockCollection, 'https://paisavasooldaily.worthly.workers.dev');
   assert.equal(meta.title, 'Best Value Collection — Curated Top Picks | Paisavasooldaily');
   assert.ok(meta.description.includes('ranked by real customer choices'));
   assert.ok(meta.description.includes('12'));
   assert.equal(
     meta.canonical,
-    'https://paisavasooldaily.paisavasooldaily.workers.dev/collections/best-value'
+    'https://paisavasooldaily.worthly.workers.dev/collections/best-value'
   );
 });
 
 test('getOrganizationSchema returns valid Organization JSON-LD', () => {
-  const schema = getOrganizationSchema('https://paisavasooldaily.paisavasooldaily.workers.dev');
+  const schema = getOrganizationSchema('https://paisavasooldaily.worthly.workers.dev');
   assert.equal(schema['@context'], 'https://schema.org');
   assert.equal(schema['@type'], 'Organization');
   assert.equal(schema.name, 'Paisavasooldaily');
@@ -759,7 +759,7 @@ test('getProductSchema returns valid Product JSON-LD with offers and aggregateRa
     is_out_of_stock: false,
   };
 
-  const schema = getProductSchema(mockProduct, 'https://paisavasooldaily.paisavasooldaily.workers.dev');
+  const schema = getProductSchema(mockProduct, 'https://paisavasooldaily.worthly.workers.dev');
   assert.ok(schema);
   assert.equal(schema['@context'], 'https://schema.org');
   assert.equal(schema['@type'], 'Product');
@@ -782,7 +782,7 @@ test('getCollectionSchema returns valid CollectionPage JSON-LD with ItemList', (
     ],
   };
 
-  const schema = getCollectionSchema(mockCollection, 'https://paisavasooldaily.paisavasooldaily.workers.dev');
+  const schema = getCollectionSchema(mockCollection, 'https://paisavasooldaily.worthly.workers.dev');
   assert.ok(schema);
   assert.equal(schema['@context'], 'https://schema.org');
   assert.equal(schema['@type'], 'CollectionPage');
@@ -1095,7 +1095,7 @@ test('SEO: Google Product rich snippets include positiveNotes, negativeNotes, ad
     image_url: 'https://example.com/sony.jpg',
   };
 
-  const schema = getProductSchema(mockProduct, 'https://paisavasooldaily.paisavasooldaily.workers.dev');
+  const schema = getProductSchema(mockProduct, 'https://paisavasooldaily.worthly.workers.dev');
   assert.ok(schema, 'Product schema must exist');
   assert.equal(schema['@type'], 'Product');
 

@@ -1,6 +1,6 @@
 import https from 'node:https';
 
-const BASE_URL = 'https://paisavasooldaily.paisavasooldaily.workers.dev';
+const BASE_URL = 'https://paisavasooldaily.worthly.workers.dev';
 
 async function fetchRoute(path) {
   const url = `${BASE_URL}${path}`;

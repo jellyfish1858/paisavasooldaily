@@ -17,7 +17,7 @@ export function getSiteUrl(): string {
   }
 
   // Canonical production URL for Paisavasooldaily
-  return "https://paisavasooldaily.paisavasooldaily.workers.dev";
+  return "https://paisavasooldaily.worthly.workers.dev";
 }
 
 export const SITE_CONFIG = {
