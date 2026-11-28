@@ -37,7 +37,10 @@ export const metadata: Metadata = {
     apple: "/icon.svg",
   },
   verification: {
-    google: "OBLUySHXK_7EiNkxlTYKoSKvj12e2zyk_VrxoKNro7k",
+    google: [
+      "pm5FrcDkqEdg4GK4xyU18KhC7xoceMCfzHVOfjDChEg",
+      "OBLUySHXK_7EiNkxlTYKoSKvj12e2zyk_VrxoKNro7k",
+    ],
   },
   openGraph: {
     title: "Paisavasooldaily — Curated Product Picks & Anti-Regret Research",

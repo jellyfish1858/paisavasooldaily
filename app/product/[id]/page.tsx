@@ -9,6 +9,7 @@ import {
 } from '@/app/secure-admin-panel/actions';
 import { generateProductMeta } from '@/lib/seo';
 import { getProductSchema } from '@/lib/structured-data';
+import { getSiteUrl } from '@/config/site';
 import FloatingCTA from '@/components/FloatingCTA';
 import ProductDetailCTA from '@/components/ProductDetailCTA';
 import ProductMedia from '@/components/ProductMedia';
@@ -135,6 +136,43 @@ export default async function ProductDetailPage({
     ? Object.entries(product.skipIf).map(([k, v]) => [k, String(v)])
     : [];
 
+  const baseUrl = getSiteUrl();
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: baseUrl,
+      },
+      ...(product.category
+        ? [
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: product.category,
+              item: `${baseUrl}/category`,
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: product.title,
+              item: `${baseUrl}/product/${id}`,
+            },
+          ]
+        : [
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: product.title,
+              item: `${baseUrl}/product/${id}`,
+            },
+          ]),
+    ],
+  };
+
   return (
     <>
       {productSchema && (
@@ -143,6 +181,10 @@ export default async function ProductDetailPage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
         />
       )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
 
       <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 text-white">
         {/* Header Breadcrumb */}

@@ -1,75 +1,84 @@
-'use client';
+import type { Metadata } from 'next';
+import { getSiteUrl } from '@/config/site';
+import CollectionsClient from '@/components/CollectionsClient';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { COLLECTIONS } from '@/lib/collection-utils';
+export function generateMetadata(): Metadata {
+  const baseUrl = getSiteUrl();
+  const title = 'Curated Product Collections — Top Picks & Recommendations | Paisavasooldaily';
+  const description =
+    'Explore curated product collections across Best Value, Premium Picks, Everyday Essentials, and Smart Buys researched from customer reviews and technical specs in India.';
+  const canonical = `${baseUrl}/collections`;
+  const ogImage = `${baseUrl}/og-default.jpg`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      siteName: 'Paisavasooldaily',
+      type: 'website',
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: 'Curated Product Collections — Paisavasooldaily',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImage],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+  };
+}
 
 export default function CollectionsPage() {
-  const [collections, setCollections] = useState<any[]>(() =>
-    COLLECTIONS.map((c) => ({
-      ...c,
-      count: c.id === 'best-value' ? 21 : c.id === 'smart-buys' ? 12 : 6,
-    }))
-  );
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchCollections = async () => {
-      try {
-        const promises = COLLECTIONS.map(async (col) => {
-          const res = await fetch(`/api/collections/${col.id}`);
-          return res.json();
-        });
-        const data = await Promise.all(promises);
-        if (Array.isArray(data) && data.length > 0 && data[0]?.id) {
-          setCollections(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch collections:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCollections();
-  }, []);
+  const baseUrl = getSiteUrl();
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: baseUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Collections",
+        item: `${baseUrl}/collections`,
+      },
+    ],
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900">
-      {/* Header */}
-      <section className="px-4 py-16 text-center border-b border-white/10">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl font-bold text-white mb-4">Curated Collections</h1>
-          <p className="text-xl text-gray-300">
-            Handpicked products organized for every need. Zero regrets.
-          </p>
-        </div>
-      </section>
-
-      {/* Collections Grid */}
-      <section className="px-4 py-16">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {collections.map((collection) => (
-              <Link
-                key={collection.id}
-                href={`/collections/${collection.id}`}
-                className="group relative overflow-hidden rounded-xl bg-white/5 backdrop-blur border border-white/10 hover:border-blue-400/50 p-8 transition-all transform hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20"
-              >
-                <div className="text-5xl mb-4">{collection.icon}</div>
-                <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors">
-                  {collection.name}
-                </h2>
-                <p className="text-gray-300 mb-4">{collection.description}</p>
-                <div className="text-sm text-gray-400">
-                  {collection.count} products
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"></div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <CollectionsClient />
+    </>
   );
 }

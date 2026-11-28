@@ -15,6 +15,7 @@ import {
 import { createClient } from '@/utils/supabase/server';
 import { generateCollectionMeta } from '@/lib/seo';
 import { getCollectionSchema } from '@/lib/structured-data';
+import { getSiteUrl } from '@/config/site';
 
 export const dynamic = 'force-dynamic';
 
@@ -142,6 +143,31 @@ export default async function CollectionDetailPage({
   }
 
   const collectionSchema = getCollectionSchema(collection);
+  const baseUrl = getSiteUrl();
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: baseUrl,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Collections",
+        item: `${baseUrl}/collections`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: collection.name,
+        item: `${baseUrl}/collections/${id}`,
+      },
+    ],
+  };
 
   return (
     <>
@@ -151,6 +177,10 @@ export default async function CollectionDetailPage({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
         />
       )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
 
       <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
         {/* Navigation Breadcrumb */}
